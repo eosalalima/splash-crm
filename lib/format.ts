@@ -1,0 +1,11 @@
+export const money = (cents: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+export const singular = {
+  contacts: "contact",
+  companies: "company",
+  deals: "deal",
+};
