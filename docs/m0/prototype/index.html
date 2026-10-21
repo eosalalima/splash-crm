@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Splash · M0 sales funnel prototype</title>
+    <link rel="stylesheet" href="prototype.css" />
+    <script defer src="prototype.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#overview"
+        ><span class="brand-mark" aria-hidden="true">≈</span> Splash
+        <small>CRM / M0</small></a
+      ><a href="../prototype-guide.md">Review guide</a>
+    </header>
+    <main id="overview">
+      <p class="eyebrow">INCEPTION · DESIGN REVIEW</p>
+      <h1>A clearer path from hello to won.</h1>
+      <p class="intro">
+        Explore a proposed sales funnel and pipeline before building it into the
+        application.
+      </p>
+      <aside class="notice">
+        <strong>Offline prototype. Fictional data only.</strong> All changes
+        stay in memory and reset on refresh. There is no login, database, server
+        authorization or durable execution. Current CRM behavior is unchanged.
+      </aside>
+      <div class="review-toolbar">
+        <nav aria-label="Prototype sections">
+          <a href="#designer">1. Design</a
+          ><a href="#pipeline">2. Review pipeline</a
+          ><a href="#history">3. Review history</a>
+        </nav>
+        <label
+          >Preview role<select id="role">
+            <option value="administrator">Administrator</option>
+            <option value="manager">Manager</option>
+            <option value="representative">Representative</option>
+            <option value="read_only">Read-only</option>
+          </select></label
+        >
+      </div>
+      <section class="panel" id="designer" aria-labelledby="designer-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">STANDARD SALES · PROPOSED TEMPLATE</p>
+            <h2 id="designer-heading">Design the next version</h2>
+            <p>
+              Draft edits apply to future sample journeys. Existing journeys
+              keep their published version.
+            </p>
+          </div>
+          <span class="badge" id="draft-status">Draft based on v1</span>
+        </div>
+        <div class="designer-grid">
+          <div>
+            <h3>Execution order</h3>
+            <p class="muted">
+              Select a stage to inspect its rules. Use Up/Down to reorder
+              intermediate stages with the keyboard.
+            </p>
+            <ol id="stages" aria-label="Draft stages"></ol>
+          </div>
+          <form id="stage-form">
+            <h3 id="stage-title">Stage settings</h3>
+            <fieldset id="stage-settings">
+              <label
+                >Stage name<input id="stage-name" required maxlength="60"
+              /></label>
+              <div class="two-columns">
+                <label
+                  >Default probability (%)<input
+                    id="stage-probability"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    required /></label
+                ><label
+                  >Target duration (elapsed hours)<input
+                    id="stage-hours"
+                    type="number"
+                    min="0"
+                    max="8760"
+                    step="1"
+                    required
+                /></label>
+              </div>
+              <label
+                >Responsible role<select id="stage-role">
+                  <option value="representative">Representative</option>
+                  <option value="manager">Manager</option>
+                  <option value="administrator">Administrator</option>
+                </select></label
+              >
+              <fieldset>
+                <legend>Required on entry</legend>
+                <label class="check"
+                  ><input id="requires-close" type="checkbox" />Expected close
+                  date</label
+                ><label class="check"
+                  ><input id="requires-call" type="checkbox" />Completed call
+                  activity</label
+                >
+              </fieldset>
+              <button type="submit" class="button secondary">
+                Save draft stage
+              </button>
+            </fieldset>
+          </form>
+        </div>
+        <div class="actions">
+          <button type="button" class="button primary" id="publish">
+            Publish draft preview</button
+          ><span class="muted"
+            >This previews version behavior; it publishes nothing to the
+            CRM.</span
+          >
+        </div>
+        <p id="design-message" role="status" aria-live="polite"></p>
+      </section>
+      <section id="pipeline" aria-labelledby="pipeline-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">JOURNEY PREVIEW</p>
+            <h2 id="pipeline-heading">Pipeline board</h2>
+            <p id="version-note"></p>
+          </div>
+          <label
+            >Preview state<select id="preview-state">
+              <option value="ready">Ready</option>
+              <option value="loading">Loading</option>
+              <option value="empty">Empty</option>
+              <option value="error">Error</option>
+            </select></label
+          >
+        </div>
+        <p class="locale">
+          Pilot convention: PHP · Asia/Manila · elapsed calendar time. The
+          current application still needs its separately tracked locale rollout.
+        </p>
+        <div id="board-state" role="status" aria-live="polite"></div>
+        <div
+          id="board"
+          class="board"
+          aria-label="Sample opportunity pipeline"
+        ></div>
+        <div class="panel" id="movement-panel">
+          <h3>Move sample opportunity</h3>
+          <p>
+            Use the same controls with a keyboard. Proposal requires an expected
+            close date and completed call; Lost requires an outcome reason.
+          </p>
+          <form id="move-form">
+            <fieldset id="move-settings">
+              <div class="form-grid">
+                <label
+                  >Opportunity name<input
+                    value="Northstar · annual renewal"
+                    readonly /></label
+                ><label
+                  >Opportunity value (PHP)<input
+                    id="sample-value"
+                    type="number"
+                    min="0"
+                    max="9999999.99"
+                    step="0.01"
+                    value="25000"
+                    required /></label
+                ><label
+                  >Expected close date (Manila calendar)<input
+                    id="sample-close"
+                    type="date" /></label
+                ><label>Move to<select id="target-stage"></select></label
+                ><label class="check"
+                  ><input id="sample-call" type="checkbox" />Completed call
+                  activity</label
+                ><label
+                  >Outcome reason<input
+                    id="sample-reason"
+                    maxlength="300"
+                    placeholder="Required for an unsuccessful exit"
+                /></label>
+              </div>
+              <div class="actions">
+                <button type="submit" class="button primary">
+                  Move opportunity</button
+                ><button
+                  type="button"
+                  class="button secondary"
+                  id="concurrent-update"
+                >
+                  Simulate another user's update</button
+                ><button
+                  type="button"
+                  class="button secondary"
+                  id="refresh-journey"
+                >
+                  Refresh journey
+                </button>
+              </div>
+            </fieldset>
+          </form>
+          <p id="move-message" role="status" aria-live="polite"></p>
+          <p class="muted">
+            This sketch keeps opportunity status separate from journey outcome.
+            Status synchronization/re-entry policy still needs product review.
+            Dragging and live collaboration are not implemented here.
+          </p>
+        </div>
+        <div class="actions">
+          <button type="button" class="button secondary" id="new-journey">
+            New sample journey on latest version</button
+          ><button type="button" class="button secondary" id="reset">
+            Reset prototype
+          </button>
+        </div>
+      </section>
+      <section class="panel" id="history" aria-labelledby="history-heading">
+        <p class="eyebrow">FICTIONAL REVIEW HISTORY</p>
+        <h2 id="history-heading">What happened in this preview</h2>
+        <ol id="history-list"></ol>
+        <p class="muted">
+          These entries are in-memory illustrations, not production audit or
+          historical stage evidence.
+        </p>
+      </section>
+    </main>
+    <footer>
+      M0 design artifact · no external requests, local storage or production
+      writes
+    </footer>
+  </body>
+</html>

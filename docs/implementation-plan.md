@@ -33,7 +33,7 @@ Retain Cache Components and authenticated Suspense boundaries. Read authoritativ
 
 Use small client components for the designer and board. Include keyboard stage movement, pending feedback, validation, loading, empty and error states.
 
-Use atomic transactions for conversion, publication and stage movement. Assess whether the current neon-http adapter supports each required transaction pattern; use supported atomic SQL/batching or a transactional adapter for read/validate/write operations. Do not assume interactive transaction support.
+Use atomic transactions for conversion, publication and stage movement. M1/M2 already selected `pg` with Drizzle node-postgres for interactive transactions; M0 records that decision and its conservative per-tenant locking tradeoff. Publication/movement remain future M3 work. Do not revert to Neon HTTP while assuming equivalent interactive read/validate/write behavior.
 
 Persist an outbox event in the business transaction and process it through a durable worker. Jobs require leases, bounded retries, idempotency, failure inspection and controlled replay. Select hosting and scheduling during inception; background work must survive request completion and restarts.
 
@@ -57,7 +57,7 @@ Business records carry organization_id. Assigned user/team are separate from ten
 
 Separate opportunity status from funnel stage and journey outcome. Require configurable reasons for abnormal exits. Published versions and historical transitions are immutable. Soft-delete critical records; agree privacy erasure and retention separately.
 
-Store UTC timestamps and organization timezone. Select initial currency explicitly: the BRD uses PHP examples while the starter formats USD. Use integer minor units with a sufficient safe range or fixed precision numeric storage. Do not aggregate mixed currencies without a conversion policy.
+Store UTC timestamps and organization timezone. The user confirmed PHP, Asia/Manila and elapsed calendar time during M0; the current runtime still formats USD and uses UTC activity input. Deliver an explicit denomination inventory/data policy plus display/input rollout before accepting PHP pilot data; never merely relabel legacy USD amounts. Use integer minor units with a sufficient safe range or fixed precision numeric storage. Do not aggregate mixed currencies without a conversion policy.
 
 ## Funnel execution contract
 
@@ -88,6 +88,22 @@ Dependencies are sequential: access precedes shared CRM; CRM precedes execution;
 
 ### M0 Inception
 
+**M0 status (21 October 2026): inception documents and offline prototype delivered; decision/operational exit gate still open.** See the [M0 inception package and decision register](m0-inception.md). This work implements M0 planning/prototyping only, with no CRM schema, runtime feature, currency migration or deployment change.
+
+- [x] Compare the current schema, policy, authentication, transactions, workflows and deployment inventory with the plan; distinguish existing M1/M2 code from unimplemented M3–M5 contracts.
+- [x] User confirmed the current MVP scope and four-role matrix (Administrator, Manager, Representative, Read-only).
+- [x] User confirmed PHP, Asia/Manila and elapsed calendar time for the pilot. Current USD/UTC runtime divergence is tracked as a separate pre-pilot rollout, not silently changed or re-denominated in M0.
+- [x] Produce terminology, current/proposed data dictionary, exact role/visibility matrix, invitation journey and traceable decision register.
+- [x] Define reporting formulas, cutoff/cohort/version/currency semantics and hand-calculated acceptance fixtures.
+- [x] Produce an offline standard sales-funnel/board prototype with keyboard controls, draft/version illustration, required data/reason errors, stale-view preview and loading/empty/error states; this is not production execution.
+- [x] Record the implemented transaction choice and concrete candidate hosting/worker architecture, pilot workload, quantified service/recovery and retention proposals.
+- [x] Produce a backlog mapped to the plan's FR-001–030 groups and known BR-004, with acceptance examples and explicit source/other-BR gaps.
+- [x] Validate local documentation/asset links, JavaScript syntax and lint; 39 Chromium prototype checks pass, including keyboard/error/version previews and responsive light/dark layouts. These checks do not prove production funnel execution.
+- [ ] Confirm hosting/provider/region/budget, pilot volume/named owners, retention/privacy and service target feasibility; these remain proposals.
+- [ ] Confirm template/metric/outcome/invitation details, reconcile the missing authoritative BRD and record reviewer findings before closing the inception gate.
+- [ ] Supply live verification/session and backup/restore evidence and deliver the recorded locale/security follow-ups before pilot acceptance. These are tracked future delivery gates, not work claimed complete under M0.
+
+
 Agree MVP versus initial-release scope, role permissions, visibility, terminology, currency, timezone, calendar, user invitation flow, pilot volume and hosting. Prototype the standard sales funnel and board. Establish quantified performance, availability, backup, restore and retention targets. Build a backlog mapped to BRD FR and BR identifiers.
 
 ### M1 Shared workspace foundation
@@ -105,7 +121,7 @@ Agree MVP versus initial-release scope, role permissions, visibility, terminolog
 - [x] Local verification: nine PGlite/validation tests, one PostgreSQL 17 transaction/concurrency integration test and one Chromium workspace/permission workflow pass. Lint, TypeScript and production-build results are recorded in the task report.
 - [ ] Apply/rehearse against a disposable Neon branch; verify real sessions, transactions/concurrency, backup restoration and deployment inventory. No live database migration is implied by source tests.
 
-M0 product decisions are not marked complete by these implementation defaults. M3–M5 remain untouched; M2 implementation is recorded below.
+The M0 section separately records confirmed scope/roles/locale and outstanding product decisions; M1 defaults alone did not establish that agreement. M3–M5 remain untouched; M2 implementation is recorded below.
 
 Validate active organization context from server membership. Implement view/create/edit/delete/assign/approve/export/configure permissions. Start with Administrator, Manager, Representative and Read-only presets, explicitly mapping other personas. Deny unsupported department scopes rather than broadening access. Write audit alongside mutations and identify identity-provider login audit support. Adapt every existing query, mutation and company link; add pagination and update personal-workspace wording.
 
@@ -210,7 +226,7 @@ Agree measurable workload and service targets during M0. Suggested starting poin
 
 ## Decisions and risks
 
-Resolve before dependent implementation: MVP boundary; tenant migration map; role/visibility matrix; currency/range; customer identity; branching/custom-field scope; terminal/paused outcomes; re-entry; business calendars; worker hosting; service objectives; retention and attachment storage.
+The M0 user-confirmed baseline is the current MVP boundary/four roles plus PHP, Asia/Manila and elapsed calendar time. Resolve before dependent implementation: source BRD reconciliation; actual tenant/denomination inventory and locale rollout; future funnel/automation permissions; customer-identity exceptions; terminal/paused outcomes and re-entry; template/gates; worker hosting/region/budget; pilot volume; service/recovery feasibility; retention/privacy and attachment storage.
 
 Key risks are isolation regressions during migration, mutable definitions corrupting history, duplicate automation after retries, misleading metrics and excessive administrator complexity. Mitigate with tenant-aware constraints and negative tests, immutable versions, outbox/idempotency, agreed reporting fixtures and guided templates with minimal mandatory fields.
 

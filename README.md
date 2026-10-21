@@ -79,3 +79,7 @@ The tracked environment template has been sanitized. Rotate previously committed
 ## Phase 2 CRM workflow
 
 Leads and Activities are available in the sidebar. Accounts retain `/companies` and Opportunities retain `/deals`. Administrators manage products and lead sources from Settings. Record pages include conversion, duplicate checks, Customer 360 and activity history. See [Phase 2 fields, migration and verification](docs/phase-2-workflow.md) before applying the additive database migration.
+
+## M0 inception and design review
+
+See the [M0 inception package](docs/m0-inception.md) for the confirmed scope/roles and PHP, Asia/Manila, elapsed-time pilot conventions, code comparison, data dictionary, metrics, requirements backlog and outstanding hosting/operations decisions. Open [the offline sales-funnel prototype](docs/m0/prototype/index.html) directly in a browser. It uses fictional in-memory data and does not add application funnel execution. Runtime still uses USD/UTC until the separately tracked locale/data rollout.
