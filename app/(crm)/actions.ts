@@ -1,6 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { AccessDenied } from "@/lib/access/policy";
 import { ZodError } from "zod";
 import { saveRecord, deleteRecord } from "@/lib/crm";
 import { kindSchema } from "@/lib/validation";
@@ -18,6 +19,7 @@ export async function save(
   try {
     savedId = await saveRecord(entity, Object.fromEntries(form), id);
   } catch (error) {
+    if (error instanceof AccessDenied) return { error: error.message };
     if (error instanceof ZodError)
       return {
         error: error.issues

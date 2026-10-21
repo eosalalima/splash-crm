@@ -14,6 +14,7 @@ import {
   X,
   ArrowUpRight,
 } from "lucide-react";
+import { clearWorkspaceSelection } from "@/app/workspaces/actions";
 import { authClient } from "@/lib/auth/client";
 const nav = [
   ["/dashboard", "Dashboard", LayoutDashboard],
@@ -25,8 +26,12 @@ const nav = [
 export function Shell({
   user,
   children,
+  organizationName,
+  role,
 }: {
   user: { name: string; email: string };
+  organizationName: string;
+  role: string;
   children: React.ReactNode;
 }) {
   const path = usePathname();
@@ -39,6 +44,7 @@ export function Shell({
     try {
       const result = await authClient.signOut();
       if (result.error) throw new Error();
+      await clearWorkspaceSelection();
       router.replace("/login");
       router.refresh();
     } catch {
@@ -62,7 +68,10 @@ export function Shell({
           </span>
           Splash<span className="brand-tag">CRM</span>
         </Link>
-        <div className="workspace-label">PERSONAL WORKSPACE</div>
+        <div className="workspace-label">{organizationName}</div>
+        <Link href="/workspaces" className="workspace-switch">
+          Switch workspace
+        </Link>
         <nav aria-label="Main navigation">
           {nav.map(([href, label, Icon]) => (
             <Link
@@ -91,7 +100,7 @@ export function Shell({
               </span>
               <span>
                 <strong>{user.name}</strong>
-                <small>Personal account</small>
+                <small>{role.replaceAll("_", " ")}</small>
               </span>
             </summary>
             <div className="user-details">
@@ -114,7 +123,7 @@ export function Shell({
             </span>
           </span>
           <span className="personal-badge">
-            <span className="trust-dot" /> Personal CRM
+            <span className="trust-dot" /> Workspace CRM
           </span>
         </header>
         <main className="page-content">{children}</main>

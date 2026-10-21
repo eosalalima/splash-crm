@@ -12,7 +12,7 @@ const content = {
   ],
   signup: [
     "Make room for growth.",
-    "Create your personal workspace and bring your customer relationships together.",
+    "Create your workspace and bring your customer relationships together.",
   ],
   "forgot-password": [
     "Let’s get you back in.",

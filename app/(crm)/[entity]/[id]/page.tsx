@@ -1,8 +1,11 @@
+export const instant = false;
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Phone, Building2 } from "lucide-react";
-import { getRecord, companyOptions } from "@/lib/crm";
+import { getRecord, companyChoices } from "@/lib/crm";
 import { kindSchema } from "@/lib/validation";
+import { workspaceRequest } from "@/lib/access/server";
+import { can } from "@/lib/access/policy";
 import { singular } from "@/lib/format";
 import { RecordForm, DeleteRecord } from "@/components/record-form";
 export default async function RecordPage({
@@ -10,17 +13,34 @@ export default async function RecordPage({
   searchParams,
 }: {
   params: Promise<{ entity: string; id: string }>;
-  searchParams: Promise<{ edit?: string }>;
+  searchParams: Promise<{
+    edit?: string;
+    companyq?: string;
+    companyPage?: string;
+  }>;
 }) {
   const { entity, id } = await params;
   const kind = kindSchema.safeParse(entity);
   if (!kind.success) notFound();
+  const info = await workspaceRequest();
+  if (id === "new" && !can(info.context.role, "create")) notFound();
   const record = id === "new" ? undefined : await getRecord(kind.data, id);
   if (record === null) notFound();
-  const companies = await companyOptions();
-  const edit = (await searchParams).edit === "true";
+  const search = await searchParams;
+  const choices = await companyChoices(
+    record && "companyId" in record && record.companyId
+      ? [record.companyId]
+      : [],
+    search.companyq,
+    search.companyPage,
+  );
+  const companies = choices.rows;
+  const edit = search.edit === "true";
   const contactView =
-    kind.data === "contacts" && record && "email" in record && !edit;
+    kind.data === "contacts" &&
+    record &&
+    "email" in record &&
+    (!edit || !can(info.context.role, "edit"));
   return (
     <>
       <Link className="back-link" href={`/${entity}`}>
@@ -37,12 +57,50 @@ export default async function RecordPage({
               : "Make space for your next great connection."}
           </p>
         </div>
-        {contactView && (
+        {contactView && can(info.context.role, "edit") && (
           <Link className="button primary" href={`/${entity}/${id}?edit=true`}>
             Edit contact
           </Link>
         )}
       </div>
+      {kind.data !== "companies" &&
+        !contactView &&
+        can(info.context.role, record ? "edit" : "create") && (
+          <section className="panel panel-heading">
+            <h2>Company selection</h2>
+            <p className="muted">
+              Search before filling the record form; changing the company search
+              reloads unsaved fields. Showing up to 50 matching companies plus
+              the current link.
+            </p>
+            <form className="search-box">
+              <input type="hidden" name="edit" value="true" />
+              <input
+                aria-label="Search company options"
+                name="companyq"
+                defaultValue={search.companyq}
+                maxLength={160}
+              />
+              <button className="button secondary">Find companies</button>
+            </form>
+            <div className="inline-actions">
+              {choices.page > 1 && (
+                <Link
+                  href={`?${new URLSearchParams({ edit: "true", companyq: search.companyq || "", companyPage: String(choices.page - 1) })}`}
+                >
+                  Previous companies
+                </Link>
+              )}
+              {choices.page * 50 < choices.total && (
+                <Link
+                  href={`?${new URLSearchParams({ edit: "true", companyq: search.companyq || "", companyPage: String(choices.page + 1) })}`}
+                >
+                  More companies
+                </Link>
+              )}
+            </div>
+          </section>
+        )}
       {contactView ? (
         <section className="panel contact-detail">
           <span className="detail-avatar">
@@ -67,7 +125,9 @@ export default async function RecordPage({
               <Building2 size={17} />
               {("companyId" in record &&
                 companies.find((c) => c.id === record.companyId)?.name) ||
-                "No company linked"}
+                ("companyId" in record && record.companyId
+                  ? "Company outside your visibility"
+                  : "No company linked")}
             </span>
           </div>
           <div className="notes">
@@ -83,9 +143,32 @@ export default async function RecordPage({
           kind={kind.data}
           record={record ?? undefined}
           companies={companies}
+          readOnly={Boolean(record) && !can(info.context.role, "edit")}
+          assignment={
+            can(info.context.role, "assign")
+              ? {
+                  members: info.members
+                    .filter(
+                      (m) =>
+                        info.context.scope === "organization" ||
+                        m.userId === info.actor.id ||
+                        info.context.peerIds.includes(m.userId),
+                    )
+                    .map((m) => ({ id: m.userId, name: m.name })),
+                  teams: info.teams.filter(
+                    (t) =>
+                      info.context.scope === "organization" ||
+                      info.context.teamIds.includes(t.id),
+                  ),
+                  currentUserId: info.actor.id,
+                }
+              : undefined
+          }
         />
       )}
-      {record && <DeleteRecord kind={kind.data} id={record.id} />}
+      {record && can(info.context.role, "delete") && (
+        <DeleteRecord kind={kind.data} id={record.id} />
+      )}
     </>
   );
 }

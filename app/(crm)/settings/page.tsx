@@ -1,11 +1,14 @@
+export const instant = false;
+import Link from "next/link";
+import { workspaceRequest } from "@/lib/access/server";
+import { can } from "@/lib/access/policy";
 import type { Metadata } from "next";
-import { requireUser } from "@/lib/auth/server";
 import { AppearanceToggle } from "@/components/settings/appearance-toggle";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  await requireUser();
+  const info = await workspaceRequest();
   return (
     <>
       <div className="page-heading">
@@ -17,6 +20,23 @@ export default async function SettingsPage() {
           <p>Personalize the appearance of your workspace.</p>
         </div>
       </div>
+      <section className="panel panel-heading">
+        <h2>{info.organization.name}</h2>
+        <p className="muted">
+          Your role: {info.context.role.replaceAll("_", " ")} · Visibility:{" "}
+          {info.context.scope}
+        </p>
+        <div className="inline-actions">
+          <Link href="/workspaces" className="button secondary">
+            Switch workspace
+          </Link>
+          {can(info.context.role, "configure") && (
+            <Link href="/settings/workspace" className="button primary">
+              Manage workspace
+            </Link>
+          )}
+        </div>
+      </section>
       <AppearanceToggle />
     </>
   );

@@ -1,3 +1,4 @@
+export const instant = false;
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -8,24 +9,31 @@ import {
   Building2,
   Handshake,
 } from "lucide-react";
-import { listRecords, companyOptions } from "@/lib/crm";
+import { recordsPage, companyOptions } from "@/lib/crm";
 import { kindSchema } from "@/lib/validation";
+import { workspaceRequest } from "@/lib/access/server";
+import { can } from "@/lib/access/policy";
 import { money, singular } from "@/lib/format";
 export default async function Records({
   params,
   searchParams,
 }: {
   params: Promise<{ entity: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   const parsed = kindSchema.safeParse((await params).entity);
   if (!parsed.success) notFound();
   const kind = parsed.data;
-  const query = (await searchParams).q ?? "";
-  const [records, companies] = await Promise.all([
-    listRecords(kind, query),
-    companyOptions(),
-  ]);
+  const search = await searchParams;
+  const query = search.q ?? "";
+  const info = await workspaceRequest();
+  const result = await recordsPage(kind, query, search.page);
+  const records = result.rows;
+  const companies = await companyOptions(
+    records.flatMap((r) =>
+      "companyId" in r && r.companyId ? [r.companyId] : [],
+    ),
+  );
   const companyMap = new Map(companies.map((c) => [c.id, c.name]));
   const Icon =
     kind === "contacts" ? Users : kind === "companies" ? Building2 : Handshake;
@@ -43,15 +51,17 @@ export default async function Records({
                 : "Turn possibilities into your next big win."}
           </p>
         </div>
-        <Link className="button primary" href={`/${kind}/new`}>
-          <Plus size={17} />
-          Add {singular[kind]}
-        </Link>
+        {can(info.context.role, "create") && (
+          <Link className="button primary" href={`/${kind}/new`}>
+            <Plus size={17} />
+            Add {singular[kind]}
+          </Link>
+        )}
       </div>
       <section className="panel">
         <div className="list-toolbar">
           <strong>
-            All {kind} <span className="count-pill">{records.length}</span>
+            All {kind} <span className="count-pill">{result.total}</span>
           </strong>
           <form className="search-box">
             <Search size={17} />
@@ -158,21 +168,37 @@ export default async function Records({
                 ? "Try another name or clear your search."
                 : `Add your first ${singular[kind]} and give your next opportunity a place to grow.`}
             </p>
-            <Link
-              className="button secondary"
-              href={query ? `/${kind}` : `/${kind}/new`}
-            >
-              {query ? "Clear search" : `Add ${singular[kind]}`}
-              <Plus size={16} />
-            </Link>
+            {(query || can(info.context.role, "create")) && (
+              <Link
+                className="button secondary"
+                href={query ? `/${kind}` : `/${kind}/new`}
+              >
+                {query ? "Clear search" : `Add ${singular[kind]}`}
+                <Plus size={16} />
+              </Link>
+            )}
           </div>
         )}
         <div className="table-footer">
-          Showing {records.length} {kind}
-          {records.length === 200
-            ? " · Latest 200 records; use search to narrow results"
-            : ""}
-          <span>Only you can access these records</span>
+          <span>
+            Page {result.page} · {result.total} {kind} in your permitted scope
+          </span>
+          <nav aria-label="Pagination" className="inline-actions">
+            {result.page > 1 && (
+              <Link
+                href={`/${kind}?${new URLSearchParams({ q: query, page: String(result.page - 1) })}`}
+              >
+                Previous
+              </Link>
+            )}
+            {result.page * result.pageSize < result.total && (
+              <Link
+                href={`/${kind}?${new URLSearchParams({ q: query, page: String(result.page + 1) })}`}
+              >
+                Next
+              </Link>
+            )}
+          </nav>
         </div>
       </section>
     </>

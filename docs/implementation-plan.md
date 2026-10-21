@@ -7,10 +7,10 @@ Prepared 20 October 2026 from the September 2026 BRD version 1.0 draft and the s
 Deliver the BRD section 66 MVP as a coherent product: shared CRM, visual funnel design, immutable published versions, validated funnel execution, activities, basic automation and reliable analytics. Use section 72 as the release acceptance gate. The broader section 6 scope should be delivered incrementally and explicitly tracked.
 
 ## Current application
- 
-The application uses Next.js 16.4.2 App Router, React 19, TypeScript, Tailwind, Neon Auth, Neon Postgres and Drizzle. Existing capabilities include personal owner-scoped company, contact and deal CRUD, a fixed five-stage deal enum, basic dashboard counts, validation and PGlite tests.
 
-Major gaps are organization membership, teams, permissions, leads and conversion, activities, configurable funnels, historical journey execution, automation, audit, reporting and integrations. Current physical deletion, USD formatting, integer money storage and 200-record list limits need review. Source inspection does not constitute live authentication or database verification.
+The application uses Next.js 16.4.2 App Router, React 19, TypeScript, Tailwind, Neon Auth, Neon Postgres and Drizzle. Before Phase 1, capabilities were personal owner-scoped CRUD, a fixed five-stage deal enum, dashboard counts and PGlite tests. Phase 1 adds organizations, membership/teams, fixed role policies, scoped transactional CRM, invitations, audit, soft deletion and pagination.
+
+Remaining major gaps are leads/conversion, activities, configurable funnels, historical journey execution, automation, richer reporting and integrations. USD formatting and integer money storage remain explicit existing defaults for review. Physical deletion and the 200-record list cutoff have been replaced in Phase 1. Source inspection does not constitute live authentication or database verification.
 
 ## MVP scope
 
@@ -91,6 +91,21 @@ Dependencies are sequential: access precedes shared CRM; CRM precedes execution;
 Agree MVP versus initial-release scope, role permissions, visibility, terminology, currency, timezone, calendar, user invitation flow, pilot volume and hosting. Prototype the standard sales funnel and board. Establish quantified performance, availability, backup, restore and retention targets. Build a backlog mapped to BRD FR and BR identifiers.
 
 ### M1 Shared workspace foundation
+
+**Phase 1 implementation status (21 October 2026): implemented in code; release/deployment verification pending.** Phase 1 is interpreted as M1 in this plan. See [Phase 1 foundation decisions, migration and verification](phase-1-foundation.md) for the concrete role matrix, transaction choice and rollout checklist.
+
+- [x] Tenant organizations, active memberships, fixed role presets, teams and own/team/organization visibility.
+- [x] Server-validated workspace selection, secure invitation acceptance/revocation, and administrator/member/team UI.
+- [x] Policy permissions for view/create/edit/delete/assign/approve/export/configure; unsupported department/custom scopes denied. Business approval/export features remain in their scheduled later scope.
+- [x] Existing CRM queries, mutations, dashboards and company links use tenant/visibility checks; assignment is distinct from tenancy.
+- [x] Soft deletion, deterministic record/company-option pagination, and active-workspace wording.
+- [x] Atomic before/after audit writes, administrator audit viewer and database append-only protections.
+- [x] Private organization-per-owner migration, populated legacy fixtures, tenant-aware constraints and explicit transactional migration command.
+- [x] Identity-provider login audit support assessed: no fabricated login events; provider feed/retention validation requires the live Neon project.
+- [x] Local verification: nine PGlite/validation tests, one PostgreSQL 17 transaction/concurrency integration test and one Chromium workspace/permission workflow pass. Lint, TypeScript and production-build results are recorded in the task report.
+- [ ] Apply/rehearse against a disposable Neon branch; verify real sessions, transactions/concurrency, backup restoration and deployment inventory. No live database migration is implied by source tests.
+
+M0 product decisions are not marked complete by these implementation defaults. M2–M5 remain untouched.
 
 Validate active organization context from server membership. Implement view/create/edit/delete/assign/approve/export/configure permissions. Start with Administrator, Manager, Representative and Read-only presets, explicitly mapping other personas. Deny unsupported department scopes rather than broadening access. Write audit alongside mutations and identify identity-provider login audit support. Adapt every existing query, mutation and company link; add pagination and update personal-workspace wording.
 

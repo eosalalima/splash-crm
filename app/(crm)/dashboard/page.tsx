@@ -1,3 +1,4 @@
+export const instant = false;
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -7,11 +8,13 @@ import {
   Handshake,
   TrendingUp,
 } from "lucide-react";
-import { requireUser } from "@/lib/auth/server";
+import { workspaceRequest } from "@/lib/access/server";
+import { can } from "@/lib/access/policy";
 import { dashboardStats, listRecords } from "@/lib/crm";
 import { money } from "@/lib/format";
 export default async function Dashboard() {
-  const user = await requireUser();
+  const info = await workspaceRequest();
+  const user = info.actor;
   const [stats, contacts] = await Promise.all([
     dashboardStats(),
     listRecords("contacts"),
@@ -35,10 +38,12 @@ export default async function Dashboard() {
             Here’s where your relationships stand. Let’s make something happen.
           </p>
         </div>
-        <Link className="button primary" href="/contacts/new">
-          <Plus size={17} />
-          Add contact
-        </Link>
+        {can(info.context.role, "create") && (
+          <Link className="button primary" href="/contacts/new">
+            <Plus size={17} />
+            Add contact
+          </Link>
+        )}
       </div>
       <div className="metric-grid">
         {metrics.map(([label, value, Icon, href]) => (
@@ -91,7 +96,9 @@ export default async function Dashboard() {
           {!stats.stages.length && (
             <div className="pipeline-hint">
               Your next opportunity belongs here.{" "}
-              <Link href="/deals/new">Create a deal ↗</Link>
+              {can(info.context.role, "create") && (
+                <Link href="/deals/new">Create a deal ↗</Link>
+              )}
             </div>
           )}
         </section>
@@ -106,10 +113,12 @@ export default async function Dashboard() {
             A name, a conversation, a possibility. Every good relationship
             starts somewhere.
           </p>
-          <Link href="/contacts/new" className="button light-button">
-            Make a connection
-            <ArrowUpRight size={18} />
-          </Link>
+          {can(info.context.role, "create") && (
+            <Link href="/contacts/new" className="button light-button">
+              Make a connection
+              <ArrowUpRight size={18} />
+            </Link>
+          )}
           <div className="next-decoration" aria-hidden="true">
             ↗
           </div>
@@ -146,9 +155,11 @@ export default async function Dashboard() {
             <Users size={26} />
             <h3>Start with a hello.</h3>
             <p>Your latest contacts will appear here.</p>
-            <Link className="text-link" href="/contacts/new">
-              Add your first contact <ArrowUpRight size={16} />
-            </Link>
+            {can(info.context.role, "create") && (
+              <Link className="text-link" href="/contacts/new">
+                Add your first contact <ArrowUpRight size={16} />
+              </Link>
+            )}
           </div>
         )}
       </section>

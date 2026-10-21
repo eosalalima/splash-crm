@@ -1,10 +1,16 @@
+export const instant = false;
 import { Suspense } from "react";
-import { requireUser } from "@/lib/auth/server";
+import { workspaceRequest } from "@/lib/access/server";
 import { Shell } from "@/components/shell";
 async function Protected({ children }: { children: React.ReactNode }) {
-  const user = await requireUser();
+  const info = await workspaceRequest();
+  const user = info.actor;
   return (
-    <Shell user={{ name: user.name || "Your account", email: user.email }}>
+    <Shell
+      user={{ name: user.name || "Your account", email: user.email }}
+      organizationName={info.organization.name}
+      role={info.context.role}
+    >
       {children}
     </Shell>
   );

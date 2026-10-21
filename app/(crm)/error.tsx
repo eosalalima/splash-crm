@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <div className="empty-state">
@@ -10,6 +11,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
       <button className="button primary" onClick={reset}>
         Try again
       </button>
+      <Link href="/workspaces">Choose another workspace</Link>
     </div>
   );
 }
