@@ -100,7 +100,8 @@ Dependencies are sequential: access precedes shared CRM; CRM precedes execution;
 - [x] Produce a backlog mapped to the plan's FR-001–030 groups and known BR-004, with acceptance examples and explicit source/other-BR gaps.
 - [x] Validate local documentation/asset links, JavaScript syntax and lint; 39 Chromium prototype checks pass, including keyboard/error/version previews and responsive light/dark layouts. These checks do not prove production funnel execution.
 - [ ] Confirm hosting/provider/region/budget, pilot volume/named owners, retention/privacy and service target feasibility; these remain proposals.
-- [ ] Confirm template/metric/outcome/invitation details, reconcile the missing authoritative BRD and record reviewer findings before closing the inception gate.
+- [x] User approved the default M0 prototype’s stage order, probabilities, durations and required fields on 21 October 2026; exact scope/values are recorded in the M0 decision register (D12).
+- [ ] Confirm remaining activity-gate/responsibility, metric/outcome/invitation details, reconcile the missing authoritative BRD and record remaining reviewer findings before closing the inception gate.
 - [ ] Supply live verification/session and backup/restore evidence and deliver the recorded locale/security follow-ups before pilot acceptance. These are tracked future delivery gates, not work claimed complete under M0.
 
 

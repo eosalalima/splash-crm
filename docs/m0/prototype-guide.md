@@ -4,17 +4,21 @@ Open [the standalone prototype](prototype/index.html) directly in a modern brows
 
 The user confirmed PHP, Asia/Manila and elapsed calendar time. The sample displays PHP and uses Manila history timestamps to show that intent. The real app remains on USD/UTC until the separate rollout item is delivered. Every opportunity/name/value/history item in this sketch is fictional.
 
-## Proposed template
+## Template approval
 
-| Stage | Kind | Probability | Target elapsed hours | Responsible role | Required on entry |
+On **21 October 2026**, the user explicitly approved the default prototype’s **stage order, probabilities, durations and required fields**, based on the prototype committed in `fcc82a4`. The exact instruction and approved values are recorded in the [M0 decision register](../m0-inception.md#prototype-approval--21-october-2026). Stage responsibility, future permissions and the separate completed-call activity gate remain proposed. This records design approval; M0 operating decisions and M3 delivery acceptance remain open.
+
+## Template baseline
+
+| Stage | Kind | Probability | Target elapsed hours | Responsible role (proposed) | Required on entry |
 | --- | --- | --- | --- | --- | --- |
 | Lead | Entry | 10% | 48 | Representative | Standard opportunity identity; no additional gate illustrated |
 | Qualified | Intermediate | 30% | 72 | Representative | No additional gate illustrated |
-| Proposal | Intermediate | 60% | 120 | Manager | Expected close date and completed call |
+| Proposal | Intermediate | 60% | 120 | Manager | Expected close date (approved field); completed call (proposed activity gate) |
 | Won | Successful terminal | 100% | None | Representative | No additional gate illustrated; final success/status policy needs review |
 | Lost | Unsuccessful terminal | 0% | None | Representative | Outcome reason |
 
-Proposed standard flow: Lead → Qualified → Proposal → Won, plus Lost from every nonterminal stage. These probabilities/durations/responsibilities/gates are proposals, not inferred historical behavior. The initial fictional sample starts in Qualified to make gate review immediate. A stage's responsible role is a design responsibility, not a grant of permissions.
+Approved standard flow: Lead → Qualified → Proposal → Won, plus Lost from every nonterminal stage. Stage order, probabilities, elapsed-hour durations and required fields are approved design defaults. Responsibilities and the completed-call activity gate remain proposals. None of these defaults is inferred historical behavior. The initial fictional sample starts in Qualified to make gate review immediate. A stage's responsible role is a design responsibility, not a grant of permissions.
 
 Execution-order Up/Down buttons intentionally change the proposed ordered draft sequence; they do not merely move shapes. Future free positioning/layout must be stored separately and cannot alter transitions. The sketch pins Lead and terminal stages and allows keyboard reordering of the intermediate pair. It is not a full graph validator/designer and intentionally has no drag interaction.
 
@@ -42,10 +46,10 @@ Execution-order Up/Down buttons intentionally change the proposed ordered draft 
 
 ## Feedback to capture before M3
 
-- Are the default stage names/order, successful/unsuccessful exits and sample gates appropriate for the sales team?
+- Confirm the separate completed-call activity gate and stage responsibilities; stage order, probabilities, durations and required fields have already been approved.
 - Who may publish/archive/clone templates and who may enroll/move scoped opportunities? Confirm the proposed future permission mapping separately from the current four-role matrix.
 - Does a successful/unsuccessful journey update opportunity status, require a separate confirmation, or allow other active customer journeys? How are deferred/paused states and re-entry handled?
-- Are the probabilities/elapsed-hour thresholds useful? An explicit 0% override must not fall back to stage probability.
+- Review probability override/reporting semantics separately from the approved template percentages and elapsed-hour targets. An explicit 0% override must not fall back to stage probability.
 - Are the keyboard movement, pinned-version explanation, outcome-reason and correction/error states understandable?
 
 Record reviewer/date/findings against D12–D13 in the [M0 decision register](../m0-inception.md). No review/sign-off is inferred from opening the file or passing automated prototype checks.

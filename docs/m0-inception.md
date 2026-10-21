@@ -29,6 +29,21 @@ Code gaps remain visible: `requireUser()` currently checks for a session but doe
 
 The user confirmed on 21 October 2026: use the existing MVP scope and four-role matrix; pilot conventions are **PHP, Asia/Manila, elapsed calendar time**. The current application remains USD/UTC. This M0 decision does not authorize treating historical USD values as PHP or add runtime timezone behavior. [OPS-01 in the backlog](m0/backlog.md) specifies the required rollout. Hosting, pilot sizing, budget and retention have not been confirmed.
 
+## Prototype approval — 21 October 2026
+
+**Reviewer:** user, by explicit instruction in this conversation. **Baseline:** the default M0 prototype committed in `fcc82a4`, described in the [prototype guide](m0/prototype-guide.md).
+
+> I approve the M0 prototype’s stage order, probabilities, durations, and required fields. Record my approval in the documentation.
+
+| Approved item | Recorded baseline |
+| --- | --- |
+| Stage order | Lead → Qualified → Proposal → Won; Lost is an exit from each nonterminal stage |
+| Stage probabilities | Lead 10%, Qualified 30%, Proposal 60%, Won 100%, Lost 0% |
+| Target durations | Lead 48, Qualified 72, Proposal 120 elapsed hours; no duration target for Won/Lost |
+| Required fields | Expected close date for Proposal; outcome reason for Lost; other stages retain the baseline fields shown in the guide |
+
+Approval covers these prototype design properties. The separate completed-call **activity** gate and stage-responsibility/future-permission mapping remain proposals; metric formulas, opportunity-status synchronization, paused/re-entry behavior, hosting, pilot operations and retention remain open. M0 operational sign-off and production implementation/deployment are separate gates.
+
 ## Scope baseline
 
 | Delivery | Included |
@@ -94,7 +109,7 @@ Statuses: **Implemented default** describes the repository; **Proposed** is a co
 | D09 | Pilot volume and staffing | Proposed 2 tenant workspaces, 25 active members total, 10 concurrent sessions, 10,000 leads, 5,000 contacts, 1,000 accounts, 5,000 opportunities, 50,000 activities and 100,000 journey events across the pilot; one named champion per tenant; 10 business-day pilot | Proposed; no staff commitment | Product/operations owner before load test/pilot |
 | D10 | Service/recovery targets | Proposed targets and measurement windows in the operating document; capacity, cost and restore capability must be demonstrated | Proposed | Operations owner before release acceptance |
 | D11 | Retention / privacy | Proposed operational logs 30 days and completed automation diagnostics 90 days. Business/audit data retained until an approved retention/erasure policy; no automatic purge. Backup retention candidate 7 days only if provider plan supports the RPO | Proposed; legal/business periods unresolved | Data owner/legal and operations before real pilot data |
-| D12 | Standard sales template | Lead → Qualified → Proposal → Won, with Lost reachable from nonterminal stages; template probabilities/durations and gate examples in the prototype guide | Proposed, prototype only | Sales owner before M3 implementation acceptance |
+| D12 | Standard sales template | User-approved default stage order, probabilities, elapsed-hour durations and required fields recorded above and in the prototype guide | Confirmed for these properties by user, 21 October 2026; activity gate/responsibility mapping still proposed | Sales owner reviews remaining choices before M3 implementation acceptance |
 | D13 | Metrics and outcomes | Metric definitions/fixtures in the metrics document; elapsed UTC time, versioned entry cohorts, no fabricated baseline duration; deferred/paused and re-entry policy unresolved | Proposed | Sales/product/reporting owner before M3 schema freeze |
 | D14 | BRD reconciliation | FR-001–030 and BR-004 are references from the plan only; source BRD, full BR list, sections 8/13–16/66/72 and exceptions still needed for authoritative acceptance | Open source gap | Product owner before final requirement sign-off |
 | D15 | Identity/session acceptance | Verify Neon verification settings/email delivery, explicit server verification protection, revocation, password reset and invitation reopening in a disposable branch | Open live/security evidence gap | Technical lead before pilot |
@@ -109,10 +124,11 @@ No hosting account is provisioned, no worker is deployed, no retention deletion 
 - [x] Produce an offline, keyboard-usable standard sales-funnel/board prototype and review scenarios.
 - [x] Specify concrete candidate hosting/worker architecture, pilot sizing and measurable operations/recovery/retention proposals.
 - [x] Record user confirmation of D01–D04: existing scope/roles, PHP, Asia/Manila and elapsed calendar time.
-- [ ] Confirm invitation/identity details D05–D06 and template/metrics D12–D13; assign actual owners and reconcile source gaps D14.
+- [x] Record explicit user approval of D12 prototype stage order, probabilities, durations and required fields on 21 October 2026.
+- [ ] Confirm invitation/identity details D05–D06, remaining activity-gate/responsibility choices D12 and metrics/outcomes D13; assign actual owners and reconcile source gaps D14.
 - [ ] Deliver the separately tracked PHP/Asia-Manila rollout before accepting pilot data; this planning-only M0 change does not migrate runtime values.
 - [ ] Select providers, region, budget, staffing and retention/privacy policy for D08–D11; validate that the selected plans support the proposed targets.
-- [ ] Record prototype review findings, accept or revise the template, and attach live identity/backup/restore evidence before pilot acceptance.
+- [ ] Resolve remaining prototype choices and attach live identity/backup/restore evidence before pilot acceptance; the approved D12 properties are already recorded.
 
 M0 artifacts can be reviewed now. Agreement and live operating evidence remain open rather than being silently marked complete.
 
