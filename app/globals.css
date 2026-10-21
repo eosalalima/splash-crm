@@ -876,6 +876,8 @@ textarea {
 }
 .search-box {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 8px;
   border: 1px solid var(--line);
@@ -884,10 +886,20 @@ textarea {
   color: #98a28d;
 }
 .search-box input {
+  flex: 1 1 170px;
+  min-width: 0;
   border: 0;
   font-size: 11px;
   width: 170px;
   padding: 11px 0;
+}
+.search-box > button,
+.search-box > a,
+.search-box > svg {
+  flex-shrink: 0;
+}
+.search-box > button {
+  white-space: nowrap;
 }
 .search-box input:focus {
   outline: 0;

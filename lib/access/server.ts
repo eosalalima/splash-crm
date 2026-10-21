@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/server";
@@ -6,7 +7,9 @@ import { getDb } from "@/lib/db";
 import { workspaceService } from "@/lib/domain/workspace";
 import { AccessDenied } from "./policy";
 export const organizationCookie = "splash-organization";
-export async function workspaceRequest() {
+// Deduplicate render-time lookups only. Each HTTP request gets a fresh context;
+// domain operations still recheck membership inside their own transaction.
+export const workspaceRequest = cache(async function workspaceRequest() {
   const actor = await requireUser();
   const service = workspaceService(getDb());
   try {
@@ -23,4 +26,4 @@ export async function workspaceRequest() {
     if (error instanceof AccessDenied) redirect("/workspaces");
     throw error;
   }
-}
+});

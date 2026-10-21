@@ -1,5 +1,6 @@
 export const instant = false;
 import Link from "next/link";
+import { CreateRecordLink } from "@/components/create-record-link";
 import { notFound } from "next/navigation";
 import {
   Plus,
@@ -58,10 +59,7 @@ export default async function Records({
           </p>
         </div>
         {can(info.context.role, "create") && (
-          <Link className="button primary" href={`/${kind}/new`}>
-            <Plus size={17} />
-            Add {singular[kind]}
-          </Link>
+          <CreateRecordLink kind={kind} appearance="primary" />
         )}
       </div>
       <section className="panel">
@@ -184,15 +182,14 @@ export default async function Records({
                 ? "Try another name or clear your search."
                 : `Add your first ${singular[kind]} and give your next opportunity a place to grow.`}
             </p>
-            {(query || can(info.context.role, "create")) && (
-              <Link
-                className="button secondary"
-                href={query ? `/${kind}` : `/${kind}/new`}
-              >
-                {query ? "Clear search" : `Add ${singular[kind]}`}
-                <Plus size={16} />
-              </Link>
-            )}
+            {(query || can(info.context.role, "create")) &&
+              (query ? (
+                <Link className="button secondary" href={`/${kind}`}>
+                  Clear search <Plus size={16} />
+                </Link>
+              ) : (
+                <CreateRecordLink kind={kind} appearance="secondary" />
+              ))}
           </div>
         )}
         <div className="table-footer">
