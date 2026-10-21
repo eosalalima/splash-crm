@@ -7,7 +7,7 @@ Prepared 20 October 2026 from the September 2026 BRD version 1.0 draft and the s
 Deliver the BRD section 66 MVP as a coherent product: shared CRM, visual funnel design, immutable published versions, validated funnel execution, activities, basic automation and reliable analytics. Use section 72 as the release acceptance gate. The broader section 6 scope should be delivered incrementally and explicitly tracked.
 
 ## Current application
-
+ 
 The application uses Next.js 16.4.2 App Router, React 19, TypeScript, Tailwind, Neon Auth, Neon Postgres and Drizzle. Existing capabilities include personal owner-scoped company, contact and deal CRUD, a fixed five-stage deal enum, basic dashboard counts, validation and PGlite tests.
 
 Major gaps are organization membership, teams, permissions, leads and conversion, activities, configurable funnels, historical journey execution, automation, audit, reporting and integrations. Current physical deletion, USD formatting, integer money storage and 200-record list limits need review. Source inspection does not constitute live authentication or database verification.
