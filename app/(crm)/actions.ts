@@ -17,7 +17,10 @@ export async function save(
   const entity = kindSchema.parse(kind);
   let savedId: string;
   try {
-    savedId = await saveRecord(entity, Object.fromEntries(form), id);
+    const input = Object.fromEntries(form);
+    if (entity === "activities" && input.dueAt)
+      input.dueAt = `${input.dueAt}:00Z`;
+    savedId = await saveRecord(entity, input, id);
   } catch (error) {
     if (error instanceof AccessDenied) return { error: error.message };
     if (error instanceof ZodError)

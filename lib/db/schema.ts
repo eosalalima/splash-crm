@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -11,6 +11,8 @@ import {
   pgEnum,
   primaryKey,
   jsonb,
+  date,
+  check,
 } from "drizzle-orm/pg-core";
 export const dealStage = pgEnum("deal_stage", [
   "Lead",
@@ -151,8 +153,17 @@ export const companies = pgTable(
     name: text("name").notNull(),
     website: text("website").notNull().default(""),
     industry: text("industry").notNull().default(""),
+    lifecycle: text("lifecycle").notNull().default("prospect"),
+    phone: text("phone").notNull().default(""),
+    address: text("address").notNull().default(""),
+    notes: text("notes").notNull().default(""),
+    tags: text("tags").array().notNull().default([]),
   },
   (t) => [
+    check(
+      "companies_lifecycle_check",
+      sql`${t.lifecycle} in ('prospect','customer','inactive')`,
+    ),
     index("companies_tenant_idx").on(
       t.organizationId,
       t.deletedAt,
@@ -176,12 +187,19 @@ export const contacts = pgTable(
     ...tenancy(),
     name: text("name").notNull(),
     email: text("email").notNull(),
+    lifecycle: text("lifecycle").notNull().default("prospect"),
+    tags: text("tags").array().notNull().default([]),
     phone: text("phone").notNull().default(""),
     role: text("role").notNull().default(""),
     notes: text("notes").notNull().default(""),
     companyId: uuid("company_id"),
   },
   (t) => [
+    check(
+      "contacts_lifecycle_check",
+      sql`${t.lifecycle} in ('prospect','customer','inactive')`,
+    ),
+    unique("contacts_org_id_unique").on(t.organizationId, t.id),
     index("contacts_tenant_idx").on(t.organizationId, t.deletedAt, t.createdAt),
     foreignKey({
       columns: [t.organizationId, t.ownerId],
@@ -198,6 +216,41 @@ export const contacts = pgTable(
     }).onDelete("restrict"),
   ],
 );
+export const leadSources = pgTable(
+  "crm_lead_sources",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    name: text("name").notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    ...timestamps(),
+  },
+  (t) => [
+    unique("sources_org_id_unique").on(t.organizationId, t.id),
+    unique("sources_name_unique").on(t.organizationId, t.name),
+  ],
+);
+export const products = pgTable(
+  "crm_products",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    name: text("name").notNull(),
+    sku: text("sku").notNull().default(""),
+    price: integer("price_cents").notNull().default(0),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    ...timestamps(),
+  },
+  (t) => [
+    check("product_price_check", sql`${t.price} >= 0`),
+    unique("products_org_id_unique").on(t.organizationId, t.id),
+    unique("products_name_unique").on(t.organizationId, t.name),
+  ],
+);
 export const deals = pgTable(
   "crm_deals",
   {
@@ -206,9 +259,29 @@ export const deals = pgTable(
     name: text("name").notNull(),
     value: integer("value_cents").notNull().default(0),
     stage: dealStage("stage").notNull().default("Lead"),
+    status: text("status").notNull().default("open"),
+    probability: integer("probability").notNull().default(0),
+    expectedClose: date("expected_close"),
+    sourceId: uuid("source_id"),
+    contactId: uuid("contact_id"),
+    notes: text("notes").notNull().default(""),
+    tags: text("tags").array().notNull().default([]),
     companyId: uuid("company_id"),
   },
   (t) => [
+    check(
+      "deals_workflow_check",
+      sql`${t.status} in ('open','won','lost') and ${t.probability} between 0 and 100 and ${t.value} >= 0`,
+    ),
+    unique("deals_org_id_unique").on(t.organizationId, t.id),
+    foreignKey({
+      columns: [t.organizationId, t.contactId],
+      foreignColumns: [contacts.organizationId, contacts.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.sourceId],
+      foreignColumns: [leadSources.organizationId, leadSources.id],
+    }),
     index("deals_tenant_idx").on(t.organizationId, t.deletedAt, t.createdAt),
     foreignKey({
       columns: [t.organizationId, t.ownerId],
@@ -241,3 +314,138 @@ export const dealRelations = relations(deals, ({ one }) => ({
     references: [companies.organizationId, companies.id],
   }),
 }));
+
+export const leads = pgTable(
+  "crm_leads",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ...tenancy(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull().default(""),
+    companyName: text("company_name").notNull().default(""),
+    role: text("role").notNull().default(""),
+    status: text("status").notNull().default("new"),
+    sourceId: uuid("source_id"),
+    score: integer("score").notNull().default(0),
+    scoreReason: text("score_reason").notNull().default(""),
+    notes: text("notes").notNull().default(""),
+    tags: text("tags").array().notNull().default([]),
+    convertedAt: timestamp("converted_at", { withTimezone: true }),
+    convertedBy: text("converted_by"),
+    convertedContactId: uuid("converted_contact_id"),
+    convertedCompanyId: uuid("converted_company_id"),
+    convertedDealId: uuid("converted_deal_id"),
+  },
+  (t) => [
+    check(
+      "lead_workflow_check",
+      sql`${t.status} in ('new','working','qualified','disqualified','converted') and ${t.score} between 0 and 100 and ((${t.convertedAt} is null and ${t.status} <> 'converted' and ${t.convertedContactId} is null and ${t.convertedCompanyId} is null and ${t.convertedDealId} is null and ${t.convertedBy} is null) or (${t.convertedAt} is not null and ${t.status} = 'converted' and ${t.convertedContactId} is not null and ${t.convertedBy} is not null))`,
+    ),
+    unique("leads_org_id_unique").on(t.organizationId, t.id),
+    index("leads_tenant_idx").on(t.organizationId, t.deletedAt, t.createdAt),
+    foreignKey({
+      columns: [t.organizationId, t.ownerId],
+      foreignColumns: [memberships.organizationId, memberships.userId],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.assignedTeamId],
+      foreignColumns: [teams.organizationId, teams.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.sourceId],
+      foreignColumns: [leadSources.organizationId, leadSources.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.convertedContactId],
+      foreignColumns: [contacts.organizationId, contacts.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.convertedCompanyId],
+      foreignColumns: [companies.organizationId, companies.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.convertedDealId],
+      foreignColumns: [deals.organizationId, deals.id],
+    }),
+  ],
+);
+export const opportunityProducts = pgTable(
+  "crm_opportunity_products",
+  {
+    organizationId: uuid("organization_id").notNull(),
+    dealId: uuid("deal_id").notNull(),
+    productId: uuid("product_id").notNull(),
+    quantity: integer("quantity").notNull(),
+    unitPrice: integer("unit_price_cents").notNull(),
+  },
+  (t) => [
+    check(
+      "opportunity_product_value_check",
+      sql`${t.quantity} between 1 and 10000 and ${t.unitPrice} >= 0`,
+    ),
+    primaryKey({ columns: [t.organizationId, t.dealId, t.productId] }),
+    foreignKey({
+      columns: [t.organizationId, t.dealId],
+      foreignColumns: [deals.organizationId, deals.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.productId],
+      foreignColumns: [products.organizationId, products.id],
+    }),
+  ],
+);
+export const activities = pgTable(
+  "crm_activities",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ...tenancy(),
+    name: text("name").notNull(),
+    type: text("type").notNull(),
+    priority: text("priority").notNull().default("normal"),
+    status: text("status").notNull().default("open"),
+    dueAt: timestamp("due_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    outcome: text("outcome").notNull().default(""),
+    notes: text("notes").notNull().default(""),
+    leadId: uuid("lead_id"),
+    contactId: uuid("contact_id"),
+    companyId: uuid("company_id"),
+    dealId: uuid("deal_id"),
+  },
+  (t) => [
+    check(
+      "activity_workflow_check",
+      sql`${t.type} in ('task','call','meeting','email','note') and ${t.status} in ('open','completed','cancelled') and ${t.priority} in ('low','normal','high') and ((${t.status} = 'completed' and ${t.completedAt} is not null and length(trim(${t.outcome})) > 0) or (${t.status} <> 'completed' and ${t.completedAt} is null))`,
+    ),
+    index("activities_tenant_idx").on(
+      t.organizationId,
+      t.deletedAt,
+      t.createdAt,
+    ),
+    foreignKey({
+      columns: [t.organizationId, t.ownerId],
+      foreignColumns: [memberships.organizationId, memberships.userId],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.assignedTeamId],
+      foreignColumns: [teams.organizationId, teams.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.leadId],
+      foreignColumns: [leads.organizationId, leads.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.contactId],
+      foreignColumns: [contacts.organizationId, contacts.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.companyId],
+      foreignColumns: [companies.organizationId, companies.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.dealId],
+      foreignColumns: [deals.organizationId, deals.id],
+    }),
+  ],
+);

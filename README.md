@@ -75,3 +75,7 @@ See [Phase 1 foundation and rollout](docs/phase-1-foundation.md) before migratin
 Use **Switch workspace** in the sidebar, and **Settings → Manage workspace** for members, roles, teams, invitations and audit history. Invitations are manually shared secure links and require the recipient's matching verified Neon email. The signed-out recipient signs in and reopens the link. Read-only users can browse only their allowed scope and cannot mutate records.
 
 The tracked environment template has been sanitized. Rotate previously committed database credentials and the cookie-signing secret; replacing the file does not revoke exposed credentials or erase Git history.
+
+## Phase 2 CRM workflow
+
+Leads and Activities are available in the sidebar. Accounts retain `/companies` and Opportunities retain `/deals`. Administrators manage products and lead sources from Settings. Record pages include conversion, duplicate checks, Customer 360 and activity history. See [Phase 2 fields, migration and verification](docs/phase-2-workflow.md) before applying the additive database migration.

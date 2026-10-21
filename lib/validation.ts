@@ -1,5 +1,11 @@
 import { z } from "zod";
-export const kinds = ["contacts", "companies", "deals"] as const;
+export const kinds = [
+  "contacts",
+  "companies",
+  "deals",
+  "leads",
+  "activities",
+] as const;
 export type Kind = (typeof kinds)[number];
 export const kindSchema = z.enum(kinds);
 export const idSchema = z.uuid();
@@ -31,4 +37,85 @@ export const dealInput = z.object({
     .transform((v) => Math.round(Number(v) * 100)),
   stage: z.enum(["Lead", "Qualified", "Proposal", "Won", "Lost"]),
   companyId,
+});
+
+const optionalId = z
+  .union([z.uuid(), z.literal("")])
+  .optional()
+  .transform((v) => v || null);
+const notes = z.string().trim().max(5000).default("");
+const tags = z
+  .union([z.string(), z.array(z.string())])
+  .default("")
+  .transform((v) => [
+    ...new Set(
+      (Array.isArray(v) ? v : v.split(","))
+        .map((t) => t.trim())
+        .filter(Boolean),
+    ),
+  ])
+  .pipe(z.array(z.string().max(40)).max(12));
+const lifecycle = z
+  .enum(["prospect", "customer", "inactive"])
+  .default("prospect");
+export const leadInput = z
+  .object({
+    name,
+    email: z.email().transform((v) => v.trim().toLowerCase()),
+    phone: z.string().trim().max(50).default(""),
+    companyName: z.string().trim().max(160).default(""),
+    role: z.string().trim().max(120).default(""),
+    status: z
+      .enum(["new", "working", "qualified", "disqualified"])
+      .default("new"),
+    sourceId: optionalId,
+    score: z.coerce.number().int().min(0).max(100).default(0),
+    scoreReason: z.string().trim().max(500).default(""),
+    notes,
+    tags,
+  })
+  .refine((v) => v.score === 0 || Boolean(v.scoreReason), {
+    message: "Explain the manually assigned score.",
+    path: ["scoreReason"],
+  });
+export const activityInput = z
+  .object({
+    name,
+    type: z.enum(["task", "call", "meeting", "email", "note"]),
+    priority: z.enum(["low", "normal", "high"]).default("normal"),
+    status: z.enum(["open", "completed", "cancelled"]).default("open"),
+    dueAt: z
+      .union([z.iso.datetime({ offset: true }), z.literal("")])
+      .optional()
+      .transform((v) => (v ? new Date(v) : null)),
+    outcome: z.string().trim().max(2000).default(""),
+    notes,
+    leadId: optionalId,
+    contactId: optionalId,
+    companyId: optionalId,
+    dealId: optionalId,
+  })
+  .refine((v) => v.status !== "completed" || Boolean(v.outcome), {
+    message: "Add an outcome before completing an activity.",
+    path: ["outcome"],
+  });
+export const companyWorkflowInput = companyInput.extend({
+  lifecycle,
+  phone: z.string().trim().max(50).default(""),
+  address: z.string().trim().max(500).default(""),
+  notes,
+  tags,
+});
+export const contactWorkflowInput = contactInput.extend({ lifecycle, tags });
+export const opportunityInput = dealInput.extend({
+  status: z.enum(["open", "won", "lost"]).optional(),
+  probability: z.coerce.number().int().min(0).max(100).default(0),
+  expectedClose: z
+    .union([z.iso.date(), z.literal("")])
+    .optional()
+    .transform((v) => v || null),
+  contactId: optionalId,
+  sourceId: optionalId,
+  notes,
+  tags,
 });

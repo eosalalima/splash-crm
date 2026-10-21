@@ -10,7 +10,7 @@ Deliver the BRD section 66 MVP as a coherent product: shared CRM, visual funnel 
 
 The application uses Next.js 16.4.2 App Router, React 19, TypeScript, Tailwind, Neon Auth, Neon Postgres and Drizzle. Before Phase 1, capabilities were personal owner-scoped CRUD, a fixed five-stage deal enum, dashboard counts and PGlite tests. Phase 1 adds organizations, membership/teams, fixed role policies, scoped transactional CRM, invitations, audit, soft deletion and pagination.
 
-Remaining major gaps are leads/conversion, activities, configurable funnels, historical journey execution, automation, richer reporting and integrations. USD formatting and integer money storage remain explicit existing defaults for review. Physical deletion and the 200-record list cutoff have been replaced in Phase 1. Source inspection does not constitute live authentication or database verification.
+Phase 2 adds lead conversion, CRM lifecycle/opportunity fields, products/sources, activities and a basic Customer 360. Remaining major gaps are configurable funnels, historical journey execution, automation, richer reporting and integrations. USD formatting and integer money storage remain explicit existing defaults for review. Physical deletion and the 200-record list cutoff have been replaced in Phase 1. Source inspection does not constitute live authentication or database verification.
 
 ## MVP scope
 
@@ -105,11 +105,25 @@ Agree MVP versus initial-release scope, role permissions, visibility, terminolog
 - [x] Local verification: nine PGlite/validation tests, one PostgreSQL 17 transaction/concurrency integration test and one Chromium workspace/permission workflow pass. Lint, TypeScript and production-build results are recorded in the task report.
 - [ ] Apply/rehearse against a disposable Neon branch; verify real sessions, transactions/concurrency, backup restoration and deployment inventory. No live database migration is implied by source tests.
 
-M0 product decisions are not marked complete by these implementation defaults. M2–M5 remain untouched.
+M0 product decisions are not marked complete by these implementation defaults. M3–M5 remain untouched; M2 implementation is recorded below.
 
 Validate active organization context from server membership. Implement view/create/edit/delete/assign/approve/export/configure permissions. Start with Administrator, Manager, Representative and Read-only presets, explicitly mapping other personas. Deny unsupported department scopes rather than broadening access. Write audit alongside mutations and identify identity-provider login audit support. Adapt every existing query, mutation and company link; add pagination and update personal-workspace wording.
 
 ### M2 CRM operating workflow
+
+**Phase 2 implementation status (21 October 2026): implemented in code; release/deployment verification pending.** Phase 2 is interpreted as M2. See [Phase 2 workflow fields, conversion and verification](phase-2-workflow.md). The referenced BRD sections 13–16 are not in this repository; their field-by-field product reconciliation remains open.
+
+- [x] Scoped leads with manual score/provenance, sources, notes, tags and assignment; account/contact lifecycle fields.
+- [x] Existing deal IDs/URLs retained as opportunities with independent status, expected close, probability, source/contact links, notes and tags.
+- [x] Atomic, idempotent conversion with optional existing contact/account matches, optional opportunity, preserved provenance and transactional audit.
+- [x] Administrator product/source creation, editing and archival; opportunity product quantities and price snapshots.
+- [x] Activities with type, assignment, UTC due date, priority, status, completion outcome and validated tenant links; manual email explicitly does not send/synchronize mail.
+- [x] Customer 360 record history, related records, activity/manual communication timeline and visible conversion links; duplicate warnings and simple tags.
+- [x] Additive migration preserves legacy records and maps Won/Lost status without manufacturing funnel history; scoped searchable/paginated lists and selections.
+- [x] Local verification: 16 validation/PGlite tests, two PostgreSQL 17 transaction/concurrency tests, and two Chromium workflow/permission tests pass; lint, TypeScript, production build and schema-drift check pass. Browser identity is simulated, not a live Neon session.
+- [ ] Live Neon migration/session and backup/restore rehearsal, and product validation against the missing source BRD. No production deployment is implied by local verification.
+
+M3–M5 are unchanged. Fixed legacy stages remain until M3; no designer, funnel execution, automation or new analytics phase is included.
 
 Implement the section 13–16 fields, lifecycle, products, expected close, probability, source and notes. Lead conversion must be atomic and idempotent, support matching existing records, and retain conversion provenance. Add activities and timeline events. Manual email records do not imply mailbox synchronization. Add administrator product/source configuration, duplicate warnings and simple tags.
 

@@ -42,6 +42,7 @@ async function fixture() {
   const pg = new PGlite();
   await pg.exec(readFileSync("drizzle/0000_talented_blade.sql", "utf8"));
   await pg.exec(readFileSync("drizzle/0001_shared_workspace.sql", "utf8"));
+  await pg.exec(readFileSync("drizzle/0002_crm_operating_workflow.sql", "utf8"));
   const db = drizzle(pg, { schema });
   const ws = workspaceService(db);
   const crm = crmService(db);
@@ -59,6 +60,7 @@ test("legacy migration preserves record IDs, counts and links in one private ten
     );
     await pg.transaction(async (tx) => {
       await tx.exec(readFileSync("drizzle/0001_shared_workspace.sql", "utf8"));
+      await tx.exec(readFileSync("drizzle/0002_crm_operating_workflow.sql", "utf8"));
     });
     const db = drizzle(pg, { schema });
     const companies = await db.select().from(schema.companies);

@@ -17,6 +17,9 @@ import {
   deals,
   memberships,
   teamMemberships,
+  leads,
+  activities,
+  leadSources,
 } from "../db/schema";
 import {
   can,
@@ -25,11 +28,13 @@ import {
   type AccessContext,
 } from "../access/policy";
 import {
-  companyInput,
-  contactInput,
-  dealInput,
   idSchema,
   type Kind,
+  companyWorkflowInput,
+  contactWorkflowInput,
+  opportunityInput,
+  leadInput,
+  activityInput,
 } from "../validation";
 import {
   workspaceService,
@@ -38,7 +43,7 @@ import {
   type WorkTx,
 } from "./workspace";
 import type { Database } from "./database";
-export const tables = { companies, contacts, deals };
+export const tables = { companies, contacts, deals, leads, activities };
 export const pageNumber = (value: unknown) => {
   const n = Number(value);
   return Number.isSafeInteger(n) && n >= 1 ? Math.min(n, 100000) : 1;
@@ -197,12 +202,14 @@ export function crmService(db: Database) {
     id?: string,
   ) {
     if (id) idSchema.parse(id);
-    const data =
-      kind === "companies"
-        ? companyInput.parse(input)
-        : kind === "contacts"
-          ? contactInput.parse(input)
-          : dealInput.parse(input);
+    const schemas = {
+      companies: companyWorkflowInput,
+      contacts: contactWorkflowInput,
+      deals: opportunityInput,
+      leads: leadInput,
+      activities: activityInput,
+    };
+    const data = schemas[kind].parse(input);
     const assignment = assignmentInput.parse(input);
     return access.within(
       actor,
@@ -218,6 +225,10 @@ export function crmService(db: Database) {
           : [];
         if (id && !before)
           throw new AccessDenied("Record not found or unavailable.");
+        if (before && "convertedAt" in before && before.convertedAt)
+          throw new AccessDenied(
+            "Converted leads are read-only; update their linked records.",
+          );
         const ownerId = assignment.ownerId ?? before?.ownerId ?? actor.id;
         const assignedTeamId =
           assignment.assignedTeamId === undefined
@@ -251,6 +262,51 @@ export function crmService(db: Database) {
               "Select an available company in this workspace.",
             );
         }
+        for (const [field, related] of [
+          ["contactId", contacts],
+          ["leadId", leads],
+          ["dealId", deals],
+        ] as const) {
+          if (field in data && data[field as keyof typeof data]) {
+            const value = (data as Record<string, unknown>)[field] as string;
+            if (
+              before &&
+              field in before &&
+              (before as Record<string, unknown>)[field] === value
+            )
+              continue;
+            const [row] = await tx
+              .select()
+              .from(related)
+              .where(
+                and(visibilityScope(related, context), eq(related.id, value)),
+              );
+            if (!row)
+              throw new AccessDenied(
+                "Select an available related record in this workspace.",
+              );
+          }
+        }
+        if (
+          "sourceId" in data &&
+          data.sourceId &&
+          (!before ||
+            !("sourceId" in before) ||
+            before.sourceId !== data.sourceId)
+        ) {
+          const [source] = await tx
+            .select()
+            .from(leadSources)
+            .where(
+              and(
+                eq(leadSources.organizationId, org),
+                eq(leadSources.id, data.sourceId),
+                isNull(leadSources.deletedAt),
+              ),
+            );
+          if (!source)
+            throw new AccessDenied("Select an active workspace source.");
+        }
         const common = {
           organizationId: org,
           ownerId,
@@ -259,7 +315,7 @@ export function crmService(db: Database) {
         };
         let after;
         if (kind === "companies") {
-          const values = { ...companyInput.parse(input), ...common };
+          const values = { ...companyWorkflowInput.parse(input), ...common };
           [after] = id
             ? await tx
                 .update(companies)
@@ -270,7 +326,7 @@ export function crmService(db: Database) {
                 .returning()
             : await tx.insert(companies).values(values).returning();
         } else if (kind === "contacts") {
-          const values = { ...contactInput.parse(input), ...common };
+          const values = { ...contactWorkflowInput.parse(input), ...common };
           [after] = id
             ? await tx
                 .update(contacts)
@@ -280,8 +336,19 @@ export function crmService(db: Database) {
                 )
                 .returning()
             : await tx.insert(contacts).values(values).returning();
-        } else {
-          const values = { ...dealInput.parse(input), ...common };
+        } else if (kind === "deals") {
+          const parsed = opportunityInput.parse(input);
+          const values = {
+            ...parsed,
+            status:
+              parsed.status ??
+              (parsed.stage === "Won"
+                ? "won"
+                : parsed.stage === "Lost"
+                  ? "lost"
+                  : "open"),
+            ...common,
+          };
           [after] = id
             ? await tx
                 .update(deals)
@@ -290,6 +357,41 @@ export function crmService(db: Database) {
                 .returning()
             : await tx.insert(deals).values(values).returning();
         }
+        if (kind === "leads") {
+          const values = { ...leadInput.parse(input), ...common };
+          [after] = id
+            ? await tx
+                .update(leads)
+                .set(values)
+                .where(and(eq(leads.organizationId, org), eq(leads.id, id)))
+                .returning()
+            : await tx.insert(leads).values(values).returning();
+        } else if (kind === "activities") {
+          const parsed = activityInput.parse(input);
+          const values = {
+            ...parsed,
+            ...common,
+            completedAt:
+              parsed.status === "completed"
+                ? before && "completedAt" in before
+                  ? (before.completedAt ?? new Date())
+                  : new Date()
+                : null,
+          };
+          [after] = id
+            ? await tx
+                .update(activities)
+                .set(values)
+                .where(
+                  and(
+                    eq(activities.organizationId, org),
+                    eq(activities.id, id),
+                  ),
+                )
+                .returning()
+            : await tx.insert(activities).values(values).returning();
+        }
+        if (!after) throw new AccessDenied("Record unavailable.");
         await writeAudit(
           tx,
           org,
@@ -330,7 +432,7 @@ export function crmService(db: Database) {
         .where(and(visibilityScope(table, context), eq(table.id, id)));
       if (!before) throw new AccessDenied("Record not found or unavailable.");
       if (kind === "companies") {
-        for (const related of [contacts, deals]) {
+        for (const related of [contacts, deals, activities]) {
           const [linked] = await tx
             .select({ id: related.id })
             .from(related)
@@ -378,16 +480,7 @@ export function crmService(db: Database) {
       const [d] = await tx
         .select({ count: count(), value: sum(deals.value) })
         .from(deals)
-        .where(
-          and(
-            visibilityScope(deals, context),
-            or(
-              eq(deals.stage, "Lead"),
-              eq(deals.stage, "Qualified"),
-              eq(deals.stage, "Proposal"),
-            ),
-          ),
-        );
+        .where(and(visibilityScope(deals, context), eq(deals.status, "open")));
       const stages = await tx
         .select({ stage: deals.stage, count: count(), value: sum(deals.value) })
         .from(deals)

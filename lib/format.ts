@@ -7,5 +7,7 @@ export const money = (cents: number) =>
 export const singular = {
   contacts: "contact",
   companies: "company",
-  deals: "deal",
+  deals: "opportunity",
+  leads: "lead",
+  activities: "activity",
 };

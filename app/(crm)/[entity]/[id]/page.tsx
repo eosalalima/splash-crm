@@ -2,12 +2,19 @@ export const instant = false;
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Phone, Building2 } from "lucide-react";
-import { getRecord, companyChoices } from "@/lib/crm";
+import { Customer360 } from "@/components/customer-360";
+import { getDb } from "@/lib/db";
+import { workflowService } from "@/lib/domain/workflow";
+import { getRecord, recordsPage, companyChoices } from "@/lib/crm";
 import { kindSchema } from "@/lib/validation";
 import { workspaceRequest } from "@/lib/access/server";
 import { can } from "@/lib/access/policy";
 import { singular } from "@/lib/format";
-import { RecordForm, DeleteRecord } from "@/components/record-form";
+import {
+  RecordForm,
+  DeleteRecord,
+  type RecordValues,
+} from "@/components/record-form";
 export default async function RecordPage({
   params,
   searchParams,
@@ -17,6 +24,12 @@ export default async function RecordPage({
     edit?: string;
     companyq?: string;
     companyPage?: string;
+    duplicate?: string;
+    relatedq?: string;
+    relatedPage?: string;
+    timelinePage?: string;
+    relatedKind?: string;
+    relatedId?: string;
   }>;
 }) {
   const { entity, id } = await params;
@@ -35,6 +48,75 @@ export default async function RecordPage({
     search.companyPage,
   );
   const companies = choices.rows;
+  const service = workflowService(getDb());
+  const config = await service.configuration(
+    info.actor,
+    info.organizationId,
+    search.relatedPage,
+    search.relatedq,
+  );
+  const optionLists = await Promise.all(
+    (["contacts", "leads", "deals"] as const).map((k) =>
+      recordsPage(k, search.relatedq, search.relatedPage),
+    ),
+  );
+  const workflowOptions = {
+    sources: config.sources,
+    contacts: optionLists[0].rows,
+    leads: optionLists[1].rows,
+    deals: optionLists[2].rows,
+  };
+  const converted = Boolean(
+    record && "convertedAt" in record && record.convertedAt,
+  );
+  const timeline = record
+    ? await service.customer360(
+        info.actor,
+        info.organizationId,
+        kind.data,
+        record.id,
+        search.timelinePage,
+      )
+    : null;
+  const duplicates = record
+    ? await service.duplicates(
+        info.actor,
+        info.organizationId,
+        kind.data,
+        record.id,
+      )
+    : search.duplicate
+      ? await service.duplicateCandidates(
+          info.actor,
+          info.organizationId,
+          kind.data,
+          search.duplicate,
+        )
+      : [];
+  let initialRecord: RecordValues | undefined = record ?? undefined;
+  if (
+    !record &&
+    kind.data === "activities" &&
+    search.relatedId &&
+    search.relatedKind &&
+    ["leads", "contacts", "companies", "deals"].includes(search.relatedKind)
+  ) {
+    const targetKind = kindSchema.parse(search.relatedKind);
+    const related = await getRecord(targetKind, search.relatedId);
+    if (related)
+      initialRecord = {
+        name: "",
+        [(
+          {
+            leads: "leadId",
+            contacts: "contactId",
+            companies: "companyId",
+            deals: "dealId",
+          } as Record<string, string>
+        )[targetKind]]: related.id,
+      };
+  }
+
   const edit = search.edit === "true";
   const contactView =
     kind.data === "contacts" &&
@@ -101,6 +183,79 @@ export default async function RecordPage({
             </div>
           </section>
         )}
+      {["leads", "contacts", "companies"].includes(kind.data) && !record && (
+        <section className="panel panel-heading">
+          <h2>Check for duplicates</h2>
+          <p className="muted">
+            Check the email address or exact account name before filling the
+            form. Searching reloads unsaved fields.
+          </p>
+          <form className="search-box">
+            <input
+              name="duplicate"
+              aria-label="Duplicate email or account name"
+              defaultValue={search.duplicate}
+              maxLength={160}
+            />
+            <button className="button secondary">Check duplicates</button>
+          </form>
+          {search.duplicate && !duplicates.length && (
+            <p>No exact matches in your permitted scope.</p>
+          )}
+        </section>
+      )}
+      {duplicates.length > 0 && (
+        <section className="panel panel-heading" role="status">
+          <h2>Possible duplicates</h2>
+          <p>
+            Same email or account name in your permitted scope. Review before
+            creating more records.
+          </p>
+          {duplicates.map((d) => (
+            <Link
+              key={d.id}
+              className="button secondary"
+              href={`/${entity}/${d.id}`}
+            >
+              {d.name}
+            </Link>
+          ))}
+        </section>
+      )}
+      <section className="panel panel-heading">
+        <h2>Related record selection</h2>
+        <p className="muted">
+          Search before filling forms. Searching reloads unsaved changes.
+          Options show 50 records per type; existing links are preserved.
+        </p>
+        <form className="search-box">
+          <input type="hidden" name="edit" value={search.edit ?? ""} />
+          <input
+            name="relatedq"
+            aria-label="Search related records and catalog"
+            defaultValue={search.relatedq}
+            maxLength={160}
+          />
+          <button className="button secondary">Find related records</button>
+        </form>
+        <div className="inline-actions">
+          {Number(search.relatedPage) > 1 && (
+            <Link
+              href={`?${new URLSearchParams({ edit: search.edit ?? "", relatedq: search.relatedq ?? "", relatedPage: String(Number(search.relatedPage) - 1) })}`}
+            >
+              Previous options
+            </Link>
+          )}
+          {Math.max(config.total, ...optionLists.map((l) => l.total)) >
+            (Number(search.relatedPage) || 1) * 50 && (
+            <Link
+              href={`?${new URLSearchParams({ edit: search.edit ?? "", relatedq: search.relatedq ?? "", relatedPage: String((Number(search.relatedPage) || 1) + 1) })}`}
+            >
+              More options
+            </Link>
+          )}
+        </div>
+      </section>
       {contactView ? (
         <section className="panel contact-detail">
           <span className="detail-avatar">
@@ -130,6 +285,12 @@ export default async function RecordPage({
                   : "No company linked")}
             </span>
           </div>
+          <p>
+            Lifecycle: {"lifecycle" in record ? record.lifecycle : "prospect"}
+          </p>
+          <p>
+            Tags: {"tags" in record ? record.tags.join(", ") || "None" : "None"}
+          </p>
           <div className="notes">
             <h3>Notes</h3>
             <p>
@@ -141,9 +302,12 @@ export default async function RecordPage({
       ) : (
         <RecordForm
           kind={kind.data}
-          record={record ?? undefined}
+          record={initialRecord}
+          workflowOptions={workflowOptions}
           companies={companies}
-          readOnly={Boolean(record) && !can(info.context.role, "edit")}
+          readOnly={
+            converted || (Boolean(record) && !can(info.context.role, "edit"))
+          }
           assignment={
             can(info.context.role, "assign")
               ? {
@@ -164,6 +328,22 @@ export default async function RecordPage({
                 }
               : undefined
           }
+        />
+      )}
+      {record && timeline && (
+        <Customer360
+          kind={kind.data}
+          id={record.id}
+          data={timeline}
+          config={config}
+          editable={can(info.context.role, "edit")}
+          convertible={
+            kind.data === "leads" &&
+            !converted &&
+            can(info.context.role, "create")
+          }
+          contacts={workflowOptions.contacts}
+          companies={companies}
         />
       )}
       {record && can(info.context.role, "delete") && (

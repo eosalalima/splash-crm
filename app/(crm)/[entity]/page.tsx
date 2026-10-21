@@ -42,7 +42,13 @@ export default async function Records({
       <div className="page-heading">
         <div>
           <span className="eyebrow">YOUR WORKSPACE, CONNECTED</span>
-          <h1 className="capitalize">{kind}</h1>
+          <h1 className="capitalize">
+            {kind === "deals"
+              ? "Opportunities"
+              : kind === "companies"
+                ? "Accounts"
+                : kind}
+          </h1>
           <p>
             {kind === "contacts"
               ? "Good relationships start with knowing your people."
@@ -85,18 +91,24 @@ export default async function Records({
                 <tr>
                   <th>Name</th>
                   <th>
-                    {kind === "contacts"
-                      ? "Email"
-                      : kind === "companies"
-                        ? "Industry"
-                        : "Value"}
+                    {kind === "activities"
+                      ? "Type / priority"
+                      : kind === "leads"
+                        ? "Email"
+                        : kind === "contacts"
+                          ? "Email"
+                          : kind === "companies"
+                            ? "Industry"
+                            : "Value"}
                   </th>
                   <th>
-                    {kind === "deals"
-                      ? "Stage"
-                      : kind === "companies"
-                        ? "Website"
-                        : "Company"}
+                    {kind === "activities" || kind === "leads"
+                      ? "Status"
+                      : kind === "deals"
+                        ? "Status / stage"
+                        : kind === "companies"
+                          ? "Website"
+                          : "Company"}
                   </th>
                   <th>
                     <span className="sr-only">Actions</span>
@@ -118,20 +130,24 @@ export default async function Records({
                       </Link>
                     </td>
                     <td>
-                      {"email" in record
-                        ? record.email
-                        : "industry" in record
-                          ? record.industry || "—"
-                          : "value" in record
-                            ? money(record.value)
-                            : "—"}
+                      {"type" in record
+                        ? `${record.type} / ${record.priority}`
+                        : "email" in record
+                          ? record.email
+                          : "industry" in record
+                            ? record.industry || "—"
+                            : "value" in record
+                              ? money(record.value)
+                              : "—"}
                     </td>
                     <td>
-                      {"stage" in record ? (
+                      {"status" in record && !("stage" in record) ? (
+                        record.status
+                      ) : "stage" in record ? (
                         <span
                           className={`stage stage-${record.stage.toLowerCase()}`}
                         >
-                          {record.stage}
+                          {record.status} / {record.stage}
                         </span>
                       ) : "website" in record ? (
                         record.website || "—"

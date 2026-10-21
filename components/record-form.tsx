@@ -2,8 +2,13 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { save, remove } from "@/app/(crm)/actions";
+import {
+  WorkflowFields,
+  type WorkflowValues,
+  type WorkflowOptions,
+} from "./workflow-fields";
 import type { Kind } from "@/lib/validation";
-export type RecordValues = {
+export type RecordValues = WorkflowValues & {
   id?: string;
   name: string;
   email?: string;
@@ -24,8 +29,10 @@ export function RecordForm({
   companies,
   readOnly = false,
   assignment,
+  workflowOptions,
 }: {
   kind: Kind;
+  workflowOptions: WorkflowOptions;
   readOnly?: boolean;
   assignment?: {
     members: { id: string; name: string }[];
@@ -42,24 +49,26 @@ export function RecordForm({
   return (
     <form action={action} className="record-form panel">
       <div className="panel-heading">
-        <h2>{record ? "Record details" : "Start with the essentials"}</h2>
+        <h2>{record?.id ? "Record details" : "Start with the essentials"}</h2>
         <p className="muted">A little context makes every connection better.</p>
       </div>
       <fieldset disabled={busy || readOnly}>
         <div className="form-grid">
           <label>
-            {kind === "contacts"
+            {kind === "contacts" || kind === "leads"
               ? "Full name"
               : kind === "companies"
                 ? "Company name"
-                : "Deal name"}
+                : kind === "deals"
+                  ? "Opportunity name"
+                  : "Activity title"}
             <input
               name="name"
               defaultValue={record?.name}
               required
               maxLength={160}
               placeholder={
-                kind === "contacts"
+                kind === "contacts" || kind === "leads"
                   ? "Alex Morgan"
                   : kind === "companies"
                     ? "Acme Studio"
@@ -67,7 +76,7 @@ export function RecordForm({
               }
             />
           </label>
-          {kind === "contacts" && (
+          {(kind === "contacts" || kind === "leads") && (
             <>
               <label>
                 Email address
@@ -103,6 +112,14 @@ export function RecordForm({
           {kind === "companies" && (
             <>
               <label>
+                Phone
+                <input
+                  name="phone"
+                  maxLength={50}
+                  defaultValue={record?.phone}
+                />
+              </label>
+              <label>
                 Website
                 <input
                   name="website"
@@ -137,7 +154,7 @@ export function RecordForm({
                 />
               </label>
               <label>
-                Stage
+                Legacy stage
                 <select name="stage" defaultValue={record?.stage ?? "Lead"}>
                   {["Lead", "Qualified", "Proposal", "Won", "Lost"].map((s) => (
                     <option key={s}>{s}</option>
@@ -146,7 +163,9 @@ export function RecordForm({
               </label>
             </>
           )}
-          {kind !== "companies" && (
+          {(kind === "contacts" ||
+            kind === "deals" ||
+            kind === "activities") && (
             <label>
               Company
               <select name="companyId" defaultValue={record?.companyId ?? ""}>
@@ -165,6 +184,11 @@ export function RecordForm({
               </select>
             </label>
           )}
+          <WorkflowFields
+            kind={kind}
+            record={record}
+            options={workflowOptions}
+          />
           {assignment && (
             <>
               <label>
@@ -212,18 +236,16 @@ export function RecordForm({
               </label>
             </>
           )}
-          {kind === "contacts" && (
-            <label className="wide">
-              Notes
-              <textarea
-                name="notes"
-                maxLength={5000}
-                rows={5}
-                defaultValue={record?.notes}
-                placeholder="What should you remember about this connection?"
-              />
-            </label>
-          )}
+          <label className="wide">
+            Notes
+            <textarea
+              name="notes"
+              maxLength={5000}
+              rows={5}
+              defaultValue={record?.notes}
+              placeholder="What should you remember about this connection?"
+            />
+          </label>
         </div>
       </fieldset>
       {state.error && (
@@ -237,7 +259,7 @@ export function RecordForm({
         </Link>
         {!readOnly && (
           <button className="button primary" disabled={busy}>
-            {busy ? "Saving…" : record ? "Save changes" : "Create record"}
+            {busy ? "Saving…" : record?.id ? "Save changes" : "Create record"}
           </button>
         )}
       </div>

@@ -18,9 +18,11 @@ import { clearWorkspaceSelection } from "@/app/workspaces/actions";
 import { authClient } from "@/lib/auth/client";
 const nav = [
   ["/dashboard", "Dashboard", LayoutDashboard],
+  ["/leads", "Leads", Users],
   ["/contacts", "Contacts", Users],
-  ["/companies", "Companies", Building2],
-  ["/deals", "Deals", Handshake],
+  ["/companies", "Accounts", Building2],
+  ["/deals", "Opportunities", Handshake],
+  ["/activities", "Activities", Users],
   ["/settings", "Settings", SettingsIcon],
 ] as const;
 export function Shell({

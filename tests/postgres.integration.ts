@@ -126,3 +126,55 @@ test("transactional PostgreSQL migration replay, audit rollback, concurrent last
     await pool.end();
   }
 });
+
+test("concurrent lead conversion creates one result and conversion audit failure rolls back every write", async () => {
+  const url = process.env.PHASE1_TEST_DATABASE_URL;
+  assert.ok(url);
+  assert.match(new URL(url).pathname, /^\/splash_phase1_[A-Za-z0-9_]+$/);
+  const pool = new Pool({ connectionString: url, max: 6 });
+  try {
+    const db = drizzle(pool, { schema });
+    await migrate(db, { migrationsFolder: "./drizzle" });
+    const { workflowService } = await import("../lib/domain/workflow");
+    const flow = workflowService(db),
+      crm = crmService(db),
+      ws = workspaceService(db);
+    const actor = {
+      id: randomUUID(),
+      email: `${randomUUID()}@example.com`,
+      emailVerified: true,
+    };
+    const org = await ws.createOrganization(actor, "Phase 2 concurrency");
+    const leadId = await crm.save(actor, org, "leads", {
+      name: "Concurrent lead",
+      email: "lead@example.com",
+      companyName: "Account",
+    });
+    const [first, second] = await Promise.all([
+      flow.convert(actor, org, { leadId }),
+      flow.convert(actor, org, { leadId }),
+    ]);
+    assert.deepEqual(first, second);
+    for (const kind of ["contacts", "companies", "deals"] as const)
+      assert.equal((await crm.list(actor, org, kind)).total, 1);
+    const another = await crm.save(actor, org, "leads", {
+      name: "Rollback lead",
+      email: "rollback@example.com",
+      companyName: "Rollback account",
+    });
+    await pool.query(
+      `CREATE FUNCTION phase2_fail_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action = 'lead.converted' THEN RAISE EXCEPTION 'injected'; END IF; RETURN NEW; END $$; CREATE TRIGGER phase2_fail_audit BEFORE INSERT ON crm_audit_events FOR EACH ROW EXECUTE FUNCTION phase2_fail_audit();`,
+    );
+    try {
+      await assert.rejects(flow.convert(actor, org, { leadId: another }));
+      for (const kind of ["contacts", "companies", "deals"] as const)
+        assert.equal((await crm.list(actor, org, kind)).total, 1);
+    } finally {
+      await pool.query(
+        "DROP TRIGGER IF EXISTS phase2_fail_audit ON crm_audit_events; DROP FUNCTION IF EXISTS phase2_fail_audit()",
+      );
+    }
+  } finally {
+    await pool.end();
+  }
+});
