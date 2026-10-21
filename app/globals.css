@@ -9,6 +9,12 @@
   --accent: #eaa269;
   --line: #e5e9e4;
   --paper: #f7f8f4;
+  --surface: #fff;
+  --surface-soft: #f0f2e7;
+  --surface-hover: #f1f4eb;
+  --surface-active: #eaf0e3;
+  --active-ink: #31573f;
+  color-scheme: light;
 }
 * {
   box-sizing: border-box;
@@ -65,9 +71,9 @@ textarea {
   display: block;
   width: 100%;
   padding: 13px 14px;
-  border: 1px solid #dce2db;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   transition: border-color 0.2s;
 }
@@ -130,7 +136,7 @@ textarea {
   background: #163d30;
 }
 .secondary {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
 }
 .full {
@@ -303,7 +309,7 @@ textarea {
   letter-spacing: 0.2px;
 }
 .auth-main {
-  background: #fcfcf8;
+  background: var(--surface);
   padding: 40px 52px 26px;
   display: flex;
   flex-direction: column;
@@ -355,7 +361,7 @@ textarea {
   font-weight: 400;
 }
 .auth-form input {
-  background: #fff;
+  background: var(--surface);
   padding: 14px;
 }
 .auth-switch {
@@ -424,7 +430,7 @@ textarea {
   width: 242px;
   position: fixed;
   inset: 0 auto 0 0;
-  background: #fdfefa;
+  background: var(--surface);
   border-right: 1px solid var(--line);
   padding: 31px 22px 15px;
   display: flex;
@@ -456,11 +462,11 @@ textarea {
   border-radius: 7px;
 }
 .sidebar nav a:hover {
-  background: #f1f4eb;
+  background: var(--surface-hover);
 }
 .sidebar nav a.active {
-  background: #eaf0e3;
-  color: #31573f;
+  background: var(--surface-active);
+  color: var(--active-ink);
   font-weight: 600;
 }
 .nav-dot {
@@ -476,7 +482,7 @@ textarea {
 .sidebar-note {
   margin: 40px 1px 24px;
   padding: 19px 15px;
-  background: #f0f2e7;
+  background: var(--surface-soft);
   border-radius: 9px;
 }
 .sidebar-note > svg {
@@ -533,7 +539,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f0f2e7;
+  background: var(--surface-soft);
   padding: 10px;
   width: 100%;
   margin-top: 10px;
@@ -553,7 +559,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fbfcf8;
+  background: var(--surface);
   font-size: 11px;
   color: #97a18f;
 }
@@ -603,7 +609,7 @@ textarea {
   margin-bottom: 26px;
 }
 .metric-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 21px;
@@ -630,13 +636,13 @@ textarea {
   align-items: center;
   font-size: 10px;
   color: #9ba58f;
-  border-top: 1px solid #f0f2eb;
+  border-top: 1px solid var(--line);
   padding-top: 13px;
 }
 .panel {
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   overflow: hidden;
 }
 .dashboard-grid {
@@ -651,7 +657,7 @@ textarea {
   gap: 15px;
   align-items: center;
   padding: 24px 25px;
-  border-bottom: 1px solid #f0f2eb;
+  border-bottom: 1px solid var(--line);
 }
 .panel-title h2,
 .panel-heading h2 {
@@ -819,7 +825,7 @@ textarea {
   align-items: center;
   gap: 12px;
   padding: 17px 25px;
-  border-bottom: 1px solid #f0f2eb;
+  border-bottom: 1px solid var(--line);
 }
 .recent-list > a > svg {
   margin-left: auto;
@@ -909,7 +915,7 @@ table {
 }
 th {
   padding: 12px 25px;
-  background: #fafbf6;
+  background: var(--surface-soft);
   border-block: 1px solid var(--line);
   font-size: 9px;
   text-transform: uppercase;
@@ -919,7 +925,7 @@ th {
 }
 td {
   padding: 17px 25px;
-  border-bottom: 1px solid #f0f2eb;
+  border-bottom: 1px solid var(--line);
   font-size: 12px;
   color: #89957f;
 }
@@ -950,7 +956,7 @@ td {
   background: transparent;
 }
 .icon-button:hover {
-  background: #eff3e8;
+  background: var(--surface-hover);
 }
 .table-footer {
   display: flex;
@@ -1343,7 +1349,7 @@ td {
     right: 17px;
     top: 19px;
     z-index: 30;
-    background: #eff3e8;
+    background: var(--surface-hover);
   }
   .topbar {
     padding-inline: 21px;
@@ -1424,5 +1430,89 @@ td {
   }
   .auth-footer {
     font-size: 9px;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e4eee7;
+  --muted: #a4b4a8;
+  --green: #367259;
+  --line: #344439;
+  --paper: #111914;
+  --surface: #19231c;
+  --surface-soft: #253229;
+  --surface-hover: #293a2e;
+  --surface-active: #2c4735;
+  --active-ink: #d4ead4;
+}
+:root[data-theme="dark"]
+  :is(.record-name, .text-link, .user-details, .contact-links, .notes p) {
+  color: var(--ink);
+}
+:root[data-theme="dark"] :is(.success, .notice, .form-error) {
+  background: var(--surface-soft);
+}
+.appearance-card {
+  max-width: 760px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.appearance-card h2 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.appearance-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.appearance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin: 26px 0 20px;
+  padding-block: 24px;
+  border-block: 1px solid var(--line);
+}
+.appearance-row h3 {
+  font-size: 14px;
+  margin-bottom: 7px;
+}
+.theme-switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  border-radius: 30px;
+  background: var(--line);
+  flex-shrink: 0;
+}
+.theme-switch span {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 4px;
+  left: 4px;
+  background: var(--surface);
+  border-radius: 50%;
+  transition: transform 0.15s;
+}
+.theme-switch[aria-checked="true"] {
+  background: var(--green);
+}
+.theme-switch[aria-checked="true"] span {
+  transform: translateX(20px);
+  background: #fff;
+}
+.theme-switch:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-switch span {
+    transition: none;
   }
 }

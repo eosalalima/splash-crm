@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   Waves,
+  Settings as SettingsIcon,
   LayoutDashboard,
   Users,
   Building2,
@@ -19,6 +20,7 @@ const nav = [
   ["/contacts", "Contacts", Users],
   ["/companies", "Companies", Building2],
   ["/deals", "Deals", Handshake],
+  ["/settings", "Settings", SettingsIcon],
 ] as const;
 export function Shell({
   user,
@@ -61,12 +63,13 @@ export function Shell({
           Splash<span className="brand-tag">CRM</span>
         </Link>
         <div className="workspace-label">PERSONAL WORKSPACE</div>
-        <nav>
+        <nav aria-label="Main navigation">
           {nav.map(([href, label, Icon]) => (
             <Link
               key={href}
               href={href}
               onClick={() => setOpen(false)}
+              aria-current={path.startsWith(href) ? "page" : undefined}
               className={path.startsWith(href) ? "active" : ""}
             >
               <Icon size={19} />

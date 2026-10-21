@@ -62,3 +62,7 @@ Official integration reference: https://github.com/neondatabase/neon-js/blob/mai
 The production build uses Next.js's supported Webpack compiler because this Windows environment's Turbopack CSS worker exits before connecting. Tailwind uses the documented PostCSS integration. The installed Next.js version and Cache Components settings are preserved.
 
 Dependency review: npm reported transitive moderate advisories in drizzle-kit's older esbuild loader. These concern an esbuild development server; this app does not launch that server. No force downgrade or breaking audit fix was applied. Review upstream dependency updates before production deployment.
+
+### Appearance
+
+Open **Settings** below **Deals** in the sidebar to toggle dark mode. The initial theme follows the device; an explicit light/dark choice is saved in this browser and applies across pages and tabs. It does not sync between devices.
