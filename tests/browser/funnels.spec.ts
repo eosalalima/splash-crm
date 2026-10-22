@@ -45,6 +45,23 @@ test("M3 designer, immutable publication, enrollment, keyboard/stale-command/dra
     .click();
   await expect(page).toHaveURL(/\/funnels\/[\da-f-]+$/);
   const designerUrl = page.url();
+  const designer = page.locator(".funnel-designer");
+  const designerForm = designer.locator(".funnel-designer-form");
+  const desktopWidth = await designerForm.evaluate((form) => form.getBoundingClientRect().width);
+  expect(desktopWidth).toBeGreaterThan(1000);
+  for (const width of [768, 390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+    expect(await designer.evaluate((panel) => panel.scrollWidth > panel.clientWidth)).toBe(false);
+    await expect(page.getByLabel("Funnel name", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Stage name", { exact: true })).toBeVisible();
+  }
+  await page.getByRole("combobox", { name: "Designer layout", exact: true }).selectOption("vertical");
+  expect(await designer.locator(".funnel-preview").evaluate((preview) => preview.scrollWidth > preview.clientWidth)).toBe(false);
+  await page.getByRole("combobox", { name: "Designer layout", exact: true }).selectOption("horizontal");
+  await page.screenshot({ path: "/tmp/splash-designer-mobile.png", fullPage: true });
+  await page.setViewportSize({ width: 1920, height: 1200 });
+  await page.screenshot({ path: "/tmp/splash-designer-desktop.png", fullPage: true });
   await expect(
     page.getByRole("button", { name: "3. Proposal · 60%", exact: true }),
   ).toBeVisible();

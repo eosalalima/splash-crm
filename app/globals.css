@@ -1624,3 +1624,44 @@ pre {
 @media(max-width:640px) { .funnel-rules { grid-template-columns: 1fr; } }
 .journey-drag-handle { cursor: grab; margin-bottom: 12px; }
 .journey-drag-handle:active { cursor: grabbing; }
+
+/* The designer uses the full panel rather than the compact record form width. */
+.funnel-designer { min-width: 0; }
+.funnel-designer-form { width: 100%; max-width: none; }
+.funnel-designer .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 20px 0;
+}
+.funnel-designer .form-grid > label { min-width: 0; }
+.funnel-designer input:not([type="checkbox"]),
+.funnel-designer textarea,
+.funnel-designer select { width: 100%; min-width: 0; }
+.funnel-designer .funnel-preview {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  align-items: stretch;
+  overscroll-behavior-x: contain;
+}
+.funnel-designer .funnel-preview.vertical {
+  grid-auto-flow: row;
+  grid-auto-columns: auto;
+}
+.funnel-designer .funnel-stage-preview { min-width: 0; overflow-wrap: anywhere; }
+.funnel-designer .funnel-stage-preview .inline-actions { flex-wrap: wrap; margin-top: auto; gap: 8px; }
+.funnel-designer .funnel-stage-preview .text-danger { flex-basis: 100%; text-align: left; }
+.funnel-designer h3 { margin-top: 20px; overflow-wrap: anywhere; }
+.funnel-rule-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.funnel-designer .funnel-rules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.funnel-designer .check-label { flex-direction: row; align-items: center; margin-bottom: 10px; overflow-wrap: anywhere; }
+.funnel-designer .check-label input[type="checkbox"] { align-self: center; flex-shrink: 0; }
+@media (max-width: 1100px) {
+  .funnel-rule-groups { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+@media (max-width: 640px) {
+  .funnel-designer { padding: 18px; }
+  .funnel-designer .form-grid,
+  .funnel-designer .funnel-rules { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .funnel-designer .funnel-preview { grid-auto-columns: min(260px, 85%); }
+  .funnel-designer .funnel-preview.vertical { grid-auto-columns: auto; }
+}

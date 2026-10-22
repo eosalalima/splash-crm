@@ -126,7 +126,7 @@ export function FunnelDesigner({
     </fieldset>
   );
   return (
-    <section className="panel panel-heading">
+    <section className="panel panel-heading funnel-designer">
       <h2>Funnel designer</h2>
       <p>
         Publish a saved draft to create an immutable version. Existing journeys
@@ -135,7 +135,7 @@ export function FunnelDesigner({
       </p>
       <form
         action={action}
-        className="record-form"
+        className="record-form funnel-designer-form"
         onReset={(event) => event.preventDefault()}
       >
         <input type="hidden" name="expectedRevision" value={expected} />
@@ -334,8 +334,10 @@ export function FunnelDesigner({
               </select>
             </label>
           </div>
-          {rules("entry")}
-          {rules("exit")}
+          <div className="funnel-rule-groups">
+            {rules("entry")}
+            {rules("exit")}
+          </div>
           {!disabled && (
             <button className="button primary" disabled={pending}>
               {pending ? "Saving…" : "Save draft"}
