@@ -43,6 +43,7 @@ async function fixture() {
   await pg.exec(readFileSync("drizzle/0000_talented_blade.sql", "utf8"));
   await pg.exec(readFileSync("drizzle/0001_shared_workspace.sql", "utf8"));
   await pg.exec(readFileSync("drizzle/0002_crm_operating_workflow.sql", "utf8"));
+  await pg.exec(readFileSync("drizzle/0003_funnel_design_execution.sql", "utf8"));
   const db = drizzle(pg, { schema });
   const ws = workspaceService(db);
   const crm = crmService(db);

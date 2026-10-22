@@ -6,6 +6,7 @@ import {
   timestamp,
   index,
   unique,
+  uniqueIndex,
   foreignKey,
   integer,
   pgEnum,
@@ -446,6 +447,215 @@ export const activities = pgTable(
     foreignKey({
       columns: [t.organizationId, t.dealId],
       foreignColumns: [deals.organizationId, deals.id],
+    }),
+  ],
+);
+
+// Published definitions and execution history are protected by migration triggers.
+export const funnels = pgTable(
+  "crm_funnels",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    kind: text("kind").notNull().default("custom"),
+    draft: jsonb("draft")
+      .$type<import("../funnels/definition").Definition>()
+      .notNull(),
+    layout: jsonb("layout")
+      .$type<import("../funnels/definition").Layout>()
+      .notNull()
+      .default({ orientation: "horizontal" }),
+    draftRevision: integer("draft_revision").notNull().default(1),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    ...timestamps(),
+  },
+  (t) => [
+    unique("funnels_org_id_unique").on(t.organizationId, t.id),
+    index("funnels_tenant_idx").on(t.organizationId, t.createdAt),
+  ],
+);
+export const funnelVersions = pgTable(
+  "crm_funnel_versions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    funnelId: uuid("funnel_id").notNull(),
+    number: integer("number").notNull(),
+    definition: jsonb("definition")
+      .$type<import("../funnels/definition").Definition>()
+      .notNull(),
+    layout: jsonb("layout")
+      .$type<import("../funnels/definition").Layout>()
+      .notNull(),
+    publishedBy: text("published_by"),
+    publishedAt: timestamp("published_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    commandKey: uuid("command_key").notNull(),
+    requestHash: text("request_hash").notNull(),
+  },
+  (t) => [
+    unique("versions_org_id_unique").on(t.organizationId, t.id),
+    unique("versions_funnel_id_unique").on(t.organizationId, t.funnelId, t.id),
+    unique("versions_number_unique").on(t.organizationId, t.funnelId, t.number),
+    unique("versions_command_unique").on(t.organizationId, t.commandKey),
+    foreignKey({
+      columns: [t.organizationId, t.funnelId],
+      foreignColumns: [funnels.organizationId, funnels.id],
+    }),
+  ],
+);
+export const funnelInstances = pgTable(
+  "crm_funnel_instances",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    dealId: uuid("deal_id").notNull(),
+    funnelId: uuid("funnel_id").notNull(),
+    versionId: uuid("version_id").notNull(),
+    currentStage: text("current_stage").notNull(),
+    state: text("state").notNull().default("active"),
+    revision: integer("revision").notNull().default(1),
+    enrolledAt: timestamp("enrolled_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    baseline: integer("baseline").notNull().default(0),
+  },
+  (t) => [
+    unique("instances_org_id_unique").on(t.organizationId, t.id),
+    unique("instances_version_id_unique").on(
+      t.organizationId,
+      t.versionId,
+      t.id,
+    ),
+    // SQL partial uniqueness implements BR-004 without restricting terminal history.
+    uniqueIndex("instances_one_active_deal")
+      .on(t.organizationId, t.dealId)
+      .where(sql`${t.state} = 'active'`),
+    check(
+      "instance_state_check",
+      sql`${t.state} in ('active','successful','unsuccessful') and ${t.revision} >= 1 and ((${t.state} = 'active' and ${t.completedAt} is null) or (${t.state} <> 'active' and ${t.completedAt} is not null))`,
+    ),
+    foreignKey({
+      columns: [t.organizationId, t.dealId],
+      foreignColumns: [deals.organizationId, deals.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.funnelId, t.versionId],
+      foreignColumns: [
+        funnelVersions.organizationId,
+        funnelVersions.funnelId,
+        funnelVersions.id,
+      ],
+    }),
+  ],
+);
+export const stageVisits = pgTable(
+  "crm_stage_visits",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    instanceId: uuid("instance_id").notNull(),
+    versionId: uuid("version_id").notNull(),
+    stageId: text("stage_id").notNull(),
+    enteredAt: timestamp("entered_at", { withTimezone: true }),
+    exitedAt: timestamp("exited_at", { withTimezone: true }),
+    actorId: text("actor_id"),
+    baseline: integer("baseline").notNull().default(0),
+  },
+  (t) => [
+    unique("visits_stage_unique").on(t.organizationId, t.instanceId, t.stageId),
+    uniqueIndex("visits_one_open")
+      .on(t.organizationId, t.instanceId)
+      .where(sql`${t.exitedAt} is null`),
+    index("visits_instance_idx").on(
+      t.organizationId,
+      t.instanceId,
+      t.enteredAt,
+    ),
+    check(
+      "visits_time_check",
+      sql`(${t.enteredAt} is not null or ${t.baseline} = 1) and (${t.exitedAt} is null or ${t.enteredAt} is null or ${t.exitedAt} >= ${t.enteredAt})`,
+    ),
+    foreignKey({
+      columns: [t.organizationId, t.versionId, t.instanceId],
+      foreignColumns: [
+        funnelInstances.organizationId,
+        funnelInstances.versionId,
+        funnelInstances.id,
+      ],
+    }),
+  ],
+);
+export const transitionEvents = pgTable(
+  "crm_transition_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    instanceId: uuid("instance_id").notNull(),
+    versionId: uuid("version_id").notNull(),
+    kind: text("kind").notNull(),
+    fromStage: text("from_stage"),
+    toStage: text("to_stage").notNull(),
+    expectedRevision: integer("expected_revision").notNull(),
+    revision: integer("revision").notNull(),
+    actorId: text("actor_id").notNull(),
+    reason: text("reason"),
+    comment: text("comment").notNull().default(""),
+    source: text("source").notNull(),
+    correlationId: uuid("correlation_id").notNull(),
+    commandKey: uuid("command_key").notNull(),
+    requestHash: text("request_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("transitions_command_unique").on(t.organizationId, t.commandKey),
+    unique("transitions_org_id_unique").on(t.organizationId, t.id),
+    unique("transitions_revision_unique").on(
+      t.organizationId,
+      t.instanceId,
+      t.revision,
+    ),
+    index("transitions_instance_idx").on(
+      t.organizationId,
+      t.instanceId,
+      t.createdAt,
+    ),
+    foreignKey({
+      columns: [t.organizationId, t.versionId, t.instanceId],
+      foreignColumns: [
+        funnelInstances.organizationId,
+        funnelInstances.versionId,
+        funnelInstances.id,
+      ],
+    }),
+  ],
+);
+export const outboxEvents = pgTable(
+  "crm_outbox_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    transitionId: uuid("transition_id").notNull(),
+    type: text("type").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    status: text("status").notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("outbox_transition_unique").on(t.organizationId, t.transitionId),
+    foreignKey({
+      columns: [t.organizationId, t.transitionId],
+      foreignColumns: [transitionEvents.organizationId, transitionEvents.id],
     }),
   ],
 );

@@ -20,6 +20,7 @@ import {
   leads,
   activities,
   leadSources,
+  funnelInstances,
 } from "../db/schema";
 import {
   can,
@@ -307,6 +308,28 @@ export function crmService(db: Database) {
           if (!source)
             throw new AccessDenied("Select an active workspace source.");
         }
+        if (
+          kind === "deals" &&
+          before &&
+          "stage" in before &&
+          "stage" in data &&
+          data.stage !== before.stage
+        ) {
+          const [journey] = await tx
+            .select({ id: funnelInstances.id })
+            .from(funnelInstances)
+            .where(
+              and(
+                eq(funnelInstances.organizationId, org),
+                eq(funnelInstances.dealId, before.id),
+              ),
+            )
+            .limit(1);
+          if (journey)
+            throw new AccessDenied(
+              "Use the pipeline board to move stages. Legacy stage is retained as migration provenance.",
+            );
+        }
         const common = {
           organizationId: org,
           ownerId,
@@ -431,6 +454,23 @@ export function crmService(db: Database) {
         .from(table)
         .where(and(visibilityScope(table, context), eq(table.id, id)));
       if (!before) throw new AccessDenied("Record not found or unavailable.");
+      if (kind === "deals") {
+        const [active] = await tx
+          .select({ id: funnelInstances.id })
+          .from(funnelInstances)
+          .where(
+            and(
+              eq(funnelInstances.organizationId, org),
+              eq(funnelInstances.dealId, id),
+              eq(funnelInstances.state, "active"),
+            ),
+          )
+          .limit(1);
+        if (active)
+          throw new AccessDenied(
+            "Finish the active journey before removing this opportunity.",
+          );
+      }
       if (kind === "companies") {
         for (const related of [contacts, deals, activities]) {
           const [linked] = await tx

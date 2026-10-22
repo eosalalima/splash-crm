@@ -30,8 +30,10 @@ export function RecordForm({
   readOnly = false,
   assignment,
   workflowOptions,
+  journeyManaged = false,
 }: {
   kind: Kind;
+  journeyManaged?: boolean;
   workflowOptions: WorkflowOptions;
   readOnly?: boolean;
   assignment?: {
@@ -153,14 +155,30 @@ export function RecordForm({
                   defaultValue={(record?.value ?? 0) / 100}
                 />
               </label>
-              <label>
-                Legacy stage
-                <select name="stage" defaultValue={record?.stage ?? "Lead"}>
-                  {["Lead", "Qualified", "Proposal", "Won", "Lost"].map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </label>
+              {journeyManaged ? (
+                <>
+                  <input
+                    type="hidden"
+                    name="stage"
+                    value={record?.stage ?? "Lead"}
+                  />
+                  <p>
+                    Stage movement is managed by the pinned pipeline. The legacy
+                    stage remains migration provenance.
+                  </p>
+                </>
+              ) : (
+                <label>
+                  Legacy stage
+                  <select name="stage" defaultValue={record?.stage ?? "Lead"}>
+                    {["Lead", "Qualified", "Proposal", "Won", "Lost"].map(
+                      (s) => (
+                        <option key={s}>{s}</option>
+                      ),
+                    )}
+                  </select>
+                </label>
+              )}
             </>
           )}
           {(kind === "contacts" ||

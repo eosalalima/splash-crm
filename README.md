@@ -83,3 +83,7 @@ Leads and Activities are available in the sidebar. Accounts retain `/companies` 
 ## M0 inception and design review
 
 See the [M0 inception package](docs/m0-inception.md) for the confirmed scope/roles and PHP, Asia/Manila, elapsed-time pilot conventions, code comparison, data dictionary, metrics, requirements backlog and outstanding hosting/operations decisions. Open [the offline sales-funnel prototype](docs/m0/prototype/index.html) directly in a browser. It uses fictional in-memory data and does not add application funnel execution. Runtime still uses USD/UTC until the separately tracked locale/data rollout.
+
+## M3 funnels and pipeline
+
+Use **Funnels** to create/clone the approved standard template, save a draft and publish an immutable version. Open an opportunity to enroll it, then use its **Pipeline** and **Journey history** links. Keyboard and drag-to-select movement use the same validated server command. See [M3 migration, versioning and checks](docs/phase-3-funnels.md) before applying migration `0003`; existing deals receive retired legacy versions with explicitly unknown historical entry times. Outbox events are persisted, but worker processing belongs to M4. Existing opportunity money remains USD until the separate PHP rollout.

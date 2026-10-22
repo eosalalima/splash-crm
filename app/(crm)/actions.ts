@@ -47,7 +47,8 @@ export async function remove(
   const entity = kindSchema.parse(kind);
   try {
     await deleteRecord(entity, id);
-  } catch {
+  } catch (error) {
+    if (error instanceof AccessDenied) return { error: error.message };
     return {
       error:
         entity === "companies"

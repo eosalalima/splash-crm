@@ -178,3 +178,119 @@ test("concurrent lead conversion creates one result and conversion audit failure
     await pool.end();
   }
 });
+
+test("M3 actual PostgreSQL: competing enrollment/movement, duplicate command and atomic outbox failure", async () => {
+  const url = process.env.PHASE1_TEST_DATABASE_URL;
+  assert.ok(url);
+  assert.match(new URL(url).pathname, /^\/splash_phase1_[A-Za-z0-9_]+$/);
+  const pool = new Pool({ connectionString: url, max: 6 });
+  try {
+    const db = drizzle(pool, { schema });
+    await migrate(db, { migrationsFolder: "./drizzle" });
+    const { funnelService } = await import("../lib/domain/funnels");
+    const service = funnelService(db),
+      crm = crmService(db),
+      ws = workspaceService(db);
+    const actor = {
+      id: randomUUID(),
+      email: `${randomUUID()}@example.com`,
+      emailVerified: true,
+    };
+    const org = await ws.createOrganization(actor, "M3 concurrency");
+    const funnel = await service.create(actor, org, { name: "Standard sales" });
+    const version = await service.publish(actor, org, funnel, {
+      expectedRevision: 1,
+      commandKey: randomUUID(),
+    });
+    const dealId = await crm.save(actor, org, "deals", {
+      name: "Concurrent opportunity",
+      value: "25000",
+      stage: "Lead",
+      companyId: "",
+      expectedClose: "2026-12-01",
+    });
+    const enrollments = await Promise.allSettled([
+      service.enroll(actor, org, {
+        dealId,
+        versionId: version.id,
+        commandKey: randomUUID(),
+      }),
+      service.enroll(actor, org, {
+        dealId,
+        versionId: version.id,
+        commandKey: randomUUID(),
+      }),
+    ]);
+    assert.equal(enrollments.filter((r) => r.status === "fulfilled").length, 1);
+    assert.equal(enrollments.filter((r) => r.status === "rejected").length, 1);
+    const instanceId = (
+      enrollments.find(
+        (r) => r.status === "fulfilled",
+      ) as PromiseFulfilledResult<{ instanceId: string }>
+    ).value.instanceId;
+    const competing = await Promise.allSettled([
+      service.move(actor, org, {
+        instanceId,
+        targetStage: "qualified",
+        expectedRevision: 1,
+        commandKey: randomUUID(),
+      }),
+      service.move(actor, org, {
+        instanceId,
+        targetStage: "qualified",
+        expectedRevision: 1,
+        commandKey: randomUUID(),
+      }),
+    ]);
+    assert.equal(competing.filter((r) => r.status === "fulfilled").length, 1);
+    assert.equal(competing.filter((r) => r.status === "rejected").length, 1);
+    const same = {
+      instanceId,
+      targetStage: "proposal",
+      expectedRevision: 2,
+      commandKey: randomUUID(),
+    };
+    const [first, second] = await Promise.all([
+      service.move(actor, org, same),
+      service.move(actor, org, same),
+    ]);
+    assert.deepEqual(first, second);
+    let h = await service.history(actor, org, instanceId);
+    assert.equal(h.instance.revision, 3);
+    assert.equal(h.events.length, 3);
+    assert.equal(h.visits.filter((v) => !v.exitedAt).length, 1);
+    await pool.query(
+      `CREATE FUNCTION m3_fail_outbox() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected'; END $$; CREATE TRIGGER m3_fail_outbox BEFORE INSERT ON crm_outbox_events FOR EACH ROW EXECUTE FUNCTION m3_fail_outbox();`,
+    );
+    try {
+      await assert.rejects(
+        service.move(actor, org, {
+          instanceId,
+          targetStage: "won",
+          expectedRevision: 3,
+          commandKey: randomUUID(),
+        }),
+      );
+    } finally {
+      await pool.query(
+        "DROP TRIGGER m3_fail_outbox ON crm_outbox_events; DROP FUNCTION m3_fail_outbox()",
+      );
+    }
+    h = await service.history(actor, org, instanceId);
+    assert.equal(h.instance.revision, 3);
+    assert.equal(h.instance.currentStage, "proposal");
+    assert.equal(h.events.length, 3);
+    assert.equal(h.visits.filter((v) => !v.exitedAt).length, 1);
+    assert.equal(
+      (
+        await db
+          .select()
+          .from(schema.outboxEvents)
+          .where(eq(schema.outboxEvents.organizationId, org))
+      ).length,
+      3,
+    );
+  } finally {
+    await pool.end();
+  }
+});

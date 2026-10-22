@@ -32,6 +32,7 @@ async function fixture() {
     "0000_talented_blade",
     "0001_shared_workspace",
     "0002_crm_operating_workflow",
+    "0003_funnel_design_execution",
   ])
     await pg.exec(readFileSync(`drizzle/${file}.sql`, "utf8"));
   const db = drizzle(pg, { schema });

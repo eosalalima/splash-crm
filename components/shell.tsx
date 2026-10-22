@@ -9,6 +9,8 @@ import {
   Users,
   Building2,
   Handshake,
+  GitBranch,
+  Columns3,
   LogOut,
   Menu,
   X,
@@ -23,6 +25,8 @@ const nav = [
   ["/companies", "Accounts", Building2],
   ["/deals", "Opportunities", Handshake],
   ["/activities", "Activities", Users],
+  ["/funnels", "Funnels", GitBranch],
+  ["/pipeline", "Pipeline", Columns3],
   ["/settings", "Settings", SettingsIcon],
 ] as const;
 export function Shell({

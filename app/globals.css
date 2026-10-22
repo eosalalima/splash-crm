@@ -1597,3 +1597,30 @@ pre {
 .record-form fieldset > label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .record-form input[type="checkbox"] { width: auto; align-self: flex-start; }
 .panel > details { margin-block: 16px; }
+
+/* Funnel design and versioned pipeline */
+.funnel-preview { display: flex; gap: 12px; overflow-x: auto; padding: 16px 0; max-width: 100%; }
+.funnel-preview.vertical { flex-direction: column; }
+.funnel-stage-preview { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; min-width: 200px; background: var(--surface-soft); }
+.funnel-stage-preview.selected { outline: 2px solid var(--green); outline-offset: -2px; }
+.funnel-stage-preview .button { white-space: normal; }
+.funnel-rules { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); padding: 16px; margin: 18px 0; gap: 20px; }
+.funnel-rules legend { padding: 0 8px; }
+.check-label { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+.check-label input[type="checkbox"] { width: auto; }
+.pipeline-board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 1fr); gap: 16px; overflow-x: auto; padding: 12px 2px 24px; max-width: 100%; }
+.pipeline-column { padding: 16px; background: var(--surface-soft); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.pipeline-column h2 { font-size: 18px; }
+.journey-card { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: var(--surface); margin: 16px 0; overflow-wrap: anywhere; }
+.journey-card.overdue { border-color: #bc7d39; }
+.journey-card h3 { margin-bottom: 10px; }
+.journey-card p { font-size: 12px; margin: 8px 0; }
+.journey-card select, .journey-card textarea { width: 100%; min-width: 0; }
+.funnel-command { margin: 16px 0; }
+.funnel-command label { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.funnel-command input, .funnel-command textarea, .funnel-command select { width: 100%; }
+.funnel-list-item { border-bottom: 1px solid var(--line); padding: 18px 0; }
+.event-reference { overflow-wrap: anywhere; }
+@media(max-width:640px) { .funnel-rules { grid-template-columns: 1fr; } }
+.journey-drag-handle { cursor: grab; margin-bottom: 12px; }
+.journey-drag-handle:active { cursor: grabbing; }

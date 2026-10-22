@@ -2,6 +2,8 @@ export const instant = false;
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Phone, Building2 } from "lucide-react";
+import { OpportunityJourneys } from "@/components/funnels/opportunity-journeys";
+import { funnelService } from "@/lib/domain/funnels";
 import { Customer360 } from "@/components/customer-360";
 import { getDb } from "@/lib/db";
 import { workflowService } from "@/lib/domain/workflow";
@@ -28,6 +30,7 @@ export default async function RecordPage({
     relatedq?: string;
     relatedPage?: string;
     timelinePage?: string;
+    journeyPage?: string;
     relatedKind?: string;
     relatedId?: string;
   }>;
@@ -66,6 +69,14 @@ export default async function RecordPage({
     leads: optionLists[1].rows,
     deals: optionLists[2].rows,
   };
+  const managedJourneys =
+    record && kind.data === "deals"
+      ? await funnelService(getDb()).journeys(
+          info.actor,
+          info.organizationId,
+          record.id,
+        )
+      : null;
   const converted = Boolean(
     record && "convertedAt" in record && record.convertedAt,
   );
@@ -302,6 +313,7 @@ export default async function RecordPage({
       ) : (
         <RecordForm
           kind={kind.data}
+          journeyManaged={Boolean(managedJourneys?.total)}
           record={initialRecord}
           workflowOptions={workflowOptions}
           companies={companies}
@@ -328,6 +340,15 @@ export default async function RecordPage({
                 }
               : undefined
           }
+        />
+      )}
+      {record && kind.data === "deals" && (
+        <OpportunityJourneys
+          actor={info.actor}
+          organizationId={info.organizationId}
+          dealId={record.id}
+          editable={can(info.context.role, "edit")}
+          page={search.journeyPage}
         />
       )}
       {record && timeline && (
