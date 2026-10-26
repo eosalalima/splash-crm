@@ -111,7 +111,12 @@ export function Shell({
             </summary>
             <div className="user-details">
               <p>{user.email}</p>
-              <button disabled={busy} onClick={logout}>
+              {/* Form extensions may inject fdprocessedid before hydration. */}
+              <button
+                disabled={busy}
+                onClick={logout}
+                suppressHydrationWarning
+              >
                 <LogOut size={16} />
                 {busy ? "Signing out…" : "Sign out"}
               </button>
