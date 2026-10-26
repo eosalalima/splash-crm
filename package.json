@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
-    "test:postgres": "tsx --test tests/postgres.integration.ts",
+    "worker:automation": "tsx scripts/automation-worker.ts",
+    "test:postgres": "tsx --test --test-concurrency=1 tests/postgres.integration.ts tests/automation.postgres.ts",
     "test:browser": "playwright test"
   },
   "dependencies": {

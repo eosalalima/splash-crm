@@ -15,6 +15,10 @@ The user confirmed the current MVP scope/roles and **PHP, Asia/Manila, elapsed c
 | ADR-07 Durable work | Proposed transactional outbox plus a leased database-polling worker | M3 persists execution events and M4 implements processing; request completion and process restart cannot discard jobs |
 | ADR-08 Pilot locale | Confirmed PHP + Asia/Manila display/local reporting dates + elapsed time; UTC instants in storage | Current USD/UTC app needs OPS-01 rollout before PHP pilot data; no automatic FX, business-hour rules or silent denomination change |
 
+## M4 implementation note (26 October 2026)
+
+[The M4 worker](../phase-4-automation.md) now implements fenced 120-second leases, renewal at each short processing transaction, six attempts and a two-connection sequential worker. A separate 20-second timer heartbeat/two-job concurrency were proposals, not delivered runtime settings. D16–D17 confirm named recipients and latest-at-first-processing semantics (including backlog), with persisted plans for retries. Hosting, region, budget, capacity and live acceptance remain open.
+
 ## Candidate hosting and scheduling decision
 
 Recommended topology for selection: Vercel Node runtime for Next.js; Neon Postgres/Auth in a compatible nearby region; one **always-on** managed Node container worker (candidate Render), polling the same transactional database every five seconds. A sleeping/free worker tier cannot satisfy the proposed delivery-lag target. No hosting manifest is committed because provider, region, project identifiers, allowed origins, subscription capabilities and budget are not confirmed.

@@ -11,12 +11,16 @@ The user explicitly approved product decisions 1–7 in this chat: D05 invitatio
 Source reconciliation before recording approval found:
 
 - M3 now implements funnels, immutable publication, execution/history and the board; older M0 comparison/dictionary/backlog descriptions are historical, not current feature status. The [M3 report](phase-3-funnels.md) and current schema/services govern implementation evidence.
-- Current fixed-role permissions, disabled starter activity gates and explicit opportunity-status changes agree with the approved policy. Automation configuration permissions are an approved M4 contract; automation itself is not implemented.
+- Current fixed-role permissions, disabled starter activity gates and explicit opportunity-status changes agree with the approved policy. Automation configuration permissions are an approved M4 contract; M4 subsequently implements automation locally; hosting/live verification remain open.
 - `lib/funnels/definition.ts` enforces ordered forward edges; M3 stores one visit per stage per instance. Approved revisit semantics require later validator/schema/service changes and acceptance tests before revisits can be offered. Terminal reopening remains deferred; explicit enrollment of a new journey after completion is separate and already supported.
 - `requireUser()` checks session presence without an explicit `emailVerified` guard. Upstream uncached session reads improve revocation handling but do not replace live verification/session evidence. IAM-02/D15 remains open.
 - Reports/fixtures are approved specifications, not implemented M5 reporting. Money formatting remains USD and activity input remains UTC; journey timestamps already display Asia/Manila.
 
 This update changes documentation only. M0 and pilot acceptance remain open.
+
+## M4 follow-up — 26 October 2026
+
+M4 is now implemented locally; see [its delivery/verification report](phase-4-automation.md). The user explicitly selected named active-member recipients with due-hour offsets, and latest workflow/current opportunity fields at first processing including existing queued events. Retries retain that evaluation and action identities. D16–D17 record these choices; they do not select hosting or close D08–D11/D14–D15. M0 and pilot acceptance remain open.
 
 ## Review path
 
@@ -106,7 +110,7 @@ The confirmed role baseline retains the existing organization-wide Read-only sco
 
 Team scope includes own records, records owned by active peers in shared teams, and explicitly team-assigned records. Assignment requires an active same-tenant user and a valid user/team combination; managers stay within their scope. Unsupported department/custom scopes are denied. Job titles never grant permissions. Map sales managers to Manager, sales agents/account executives to Representative, and approved observers/analysts to Read-only; appoint administrators explicitly. Unmapped personas receive no access.
 
-Approved responsibility mapping (26 October 2026): Administrator designs/publishes/archives funnel templates and configures automation; Manager and Representative enroll/move only visible opportunities with edit permission; Read-only browses permitted boards/history. Blueprint definitions may be visible to active members without exposing other users' records. M3 enforces these funnel permissions; automation permissions are an approved M4 requirement, with enforcement/verification pending implementation. Stage responsibility is guidance, not an additional permission grant.
+Approved responsibility mapping (26 October 2026): Administrator designs/publishes/archives funnel templates and configures automation; Manager and Representative enroll/move only visible opportunities with edit permission; Read-only browses permitted boards/history. Blueprint definitions may be visible to active members without exposing other users' records. M3 enforces these funnel permissions; M4 now enforces automation permissions locally; hosted/live verification remains pending. Stage responsibility is guidance, not an additional permission grant.
 
 ## Decision register
 
@@ -129,6 +133,9 @@ Statuses: **Implemented default** describes the repository; **Proposed** is a co
 | D13 | Metrics and outcomes | Documented metric definitions/fixtures approved; separate journey outcome and explicit opportunity Won/Lost action. Defer dedicated pause/resume and terminal reopening. Revisits only through published edges, preserving every visit; current ordered M3 does not support revisits | Confirmed by user, 26 October 2026; M5 reports and revisit support pending | Sales/product/reporting owner verifies M5 metrics and future revisit implementation |
 | D14 | BRD reconciliation | FR-001–030 and BR-004 are references from the plan only; source BRD, full BR list, sections 8/13–16/66/72 and exceptions still needed for authoritative acceptance | Open source gap | Product owner before final requirement sign-off |
 | D15 | Identity/session acceptance | Verify Neon verification settings/email delivery, explicit server verification protection, revocation, password reset and invitation reopening in a disposable branch | Open live/security evidence gap | Technical lead before pilot |
+| D16 | Automation recipient/due policy | Workflow selects a named active same-tenant member and per-task due-hour offset from stage entry; fail visibly if current opportunity access is lost. Tasks require create permission; notifications require view. No automatic reassignment | Confirmed by user, 26 October 2026; implemented locally in M4 | Sales/technical owner verifies recipients and backlog before hosted rollout |
+| D17 | Workflow version/condition timing | Latest nonarchived workflow version and current opportunity fields at first processing, including existing queued events. Persist initial version choices/condition results for retries/replay; do not change a retry's action set | Confirmed by user, 26 October 2026; implemented locally in M4 | Technical/operations owner verifies live restart/replay and reviews backlog |
+
 
 No hosting account is provisioned, no worker is deployed, no retention deletion is executed, and no existing values are re-denominated by these proposed decisions.
 
@@ -143,7 +150,7 @@ No hosting account is provisioned, no worker is deployed, no retention deletion 
 - [x] Record explicit user approval of D12 prototype stage order, probabilities, durations and required fields on 21 October 2026.
 - [x] Record user approval of D05–D06, D12 activity-gate/permission policy and D13 reporting/outcome policy on 26 October 2026.
 - [ ] Assign actual owners and reconcile authoritative BRD/source gaps D14; operating answers remain unfilled.
-- [ ] Deliver and verify approved contracts that exceed current code, including future revisit support and M4/M5 features; approval is not implementation evidence.
+- [ ] Deliver and verify approved contracts that exceed current code, including future revisit support and M5 features; verify the hosted M4 worker separately; approval is not implementation evidence.
 - [ ] Deliver the separately tracked PHP/Asia-Manila rollout before accepting pilot data; this planning-only M0 change does not migrate runtime values.
 - [ ] Select providers, region, budget, staffing and retention/privacy policy for D08–D11; validate that the selected plans support the proposed targets.
 - [ ] Attach live Neon signup/verification/session/revocation/reset/invitation evidence (D15/IAM-02), plus disposable migration and timed backup/restore rehearsal evidence before pilot acceptance. Record remaining reviewer findings; product approvals do not close these evidence gates.

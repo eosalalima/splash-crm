@@ -49,6 +49,75 @@ export async function writeAudit(
     afterData,
   });
 }
+// Shared authorization boundary for web commands and durable automation transactions.
+export async function authorizeWorkspace(
+  tx: WorkTx,
+  actor: Actor,
+  orgId: string,
+  permission: Permission,
+): Promise<AccessContext> {
+  uuid.parse(orgId);
+  if (!actor.id) throw new AccessDenied();
+  // All workspace operations share this lock, serializing membership revocation
+  // with authorization+mutation+audit (conservative initial consistency policy).
+  const [org] = await tx
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, orgId))
+    .for("update");
+  if (!org) throw new AccessDenied();
+  const [member] = await tx
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.organizationId, orgId),
+        eq(memberships.userId, actor.id),
+        isNull(memberships.revokedAt),
+      ),
+    );
+  if (!member || !can(member.role, permission)) throw new AccessDenied();
+  const mine = await tx
+    .select({ id: teamMemberships.teamId })
+    .from(teamMemberships)
+    .where(
+      and(
+        eq(teamMemberships.organizationId, orgId),
+        eq(teamMemberships.userId, actor.id),
+      ),
+    );
+  const teamIds = mine.map((t) => t.id);
+  const peers = await tx
+    .select({
+      userId: teamMemberships.userId,
+      teamId: teamMemberships.teamId,
+    })
+    .from(teamMemberships)
+    .innerJoin(
+      memberships,
+      and(
+        eq(memberships.organizationId, teamMemberships.organizationId),
+        eq(memberships.userId, teamMemberships.userId),
+      ),
+    )
+    .where(
+      and(
+        eq(teamMemberships.organizationId, orgId),
+        isNull(memberships.revokedAt),
+      ),
+    );
+  const context: AccessContext = {
+    organizationId: orgId,
+    userId: actor.id,
+    role: member.role,
+    scope: member.scope,
+    teamIds,
+    peerIds: peers
+      .filter((p) => teamIds.includes(p.teamId))
+      .map((p) => p.userId),
+  };
+  return context;
+}
 export function workspaceService(db: Database) {
   async function available(actor: Actor, bootstrap = true) {
     if (!actor.id) throw new AccessDenied();
@@ -120,64 +189,7 @@ export function workspaceService(db: Database) {
     uuid.parse(orgId);
     if (!actor.id) throw new AccessDenied();
     return db.transaction(async (tx) => {
-      // All workspace operations share this lock, serializing membership revocation
-      // with authorization+mutation+audit (conservative initial consistency policy).
-      const [org] = await tx
-        .select()
-        .from(organizations)
-        .where(eq(organizations.id, orgId))
-        .for("update");
-      if (!org) throw new AccessDenied();
-      const [member] = await tx
-        .select()
-        .from(memberships)
-        .where(
-          and(
-            eq(memberships.organizationId, orgId),
-            eq(memberships.userId, actor.id),
-            isNull(memberships.revokedAt),
-          ),
-        );
-      if (!member || !can(member.role, permission)) throw new AccessDenied();
-      const mine = await tx
-        .select({ id: teamMemberships.teamId })
-        .from(teamMemberships)
-        .where(
-          and(
-            eq(teamMemberships.organizationId, orgId),
-            eq(teamMemberships.userId, actor.id),
-          ),
-        );
-      const teamIds = mine.map((t) => t.id);
-      const peers = await tx
-        .select({
-          userId: teamMemberships.userId,
-          teamId: teamMemberships.teamId,
-        })
-        .from(teamMemberships)
-        .innerJoin(
-          memberships,
-          and(
-            eq(memberships.organizationId, teamMemberships.organizationId),
-            eq(memberships.userId, teamMemberships.userId),
-          ),
-        )
-        .where(
-          and(
-            eq(teamMemberships.organizationId, orgId),
-            isNull(memberships.revokedAt),
-          ),
-        );
-      const context: AccessContext = {
-        organizationId: orgId,
-        userId: actor.id,
-        role: member.role,
-        scope: member.scope,
-        teamIds,
-        peerIds: peers
-          .filter((p) => teamIds.includes(p.teamId))
-          .map((p) => p.userId),
-      };
+      const context = await authorizeWorkspace(tx, actor, orgId, permission);
       return fn(tx, context);
     });
   }

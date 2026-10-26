@@ -11,6 +11,7 @@ import {
   Handshake,
   GitBranch,
   Columns3,
+  Bell,
   LogOut,
   Menu,
   X,
@@ -27,6 +28,7 @@ const nav = [
   ["/activities", "Activities", Users],
   ["/funnels", "Funnels", GitBranch],
   ["/pipeline", "Pipeline", Columns3],
+  ["/notifications", "Notifications", Bell],
   ["/settings", "Settings", SettingsIcon],
 ] as const;
 export function Shell({

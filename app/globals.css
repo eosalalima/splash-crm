@@ -1667,3 +1667,9 @@ pre {
   .funnel-designer .funnel-preview { grid-auto-columns: min(260px, 85%); }
   .funnel-designer .funnel-preview.vertical { grid-auto-columns: auto; }
 }
+
+/* Typed workflow controls keep labels and actions usable on small screens. */
+.automation-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.automation-row label { min-width: 0; }
+.automation-row .button { align-self: end; }
+@media (max-width: 640px) { .automation-row { grid-template-columns: 1fr; } }

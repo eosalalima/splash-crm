@@ -647,15 +647,202 @@ export const outboxEvents = pgTable(
     type: text("type").notNull(),
     payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
     status: text("status").notNull().default("pending"),
+    plan: jsonb("plan").$type<{
+      versionIds: string[];
+      snapshot: import("../automation/definition").ConditionSnapshot;
+      evaluatedAt: string;
+    }>(),
+    attempts: integer("attempts").notNull().default(0),
+    availableAt: timestamp("available_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    leaseToken: uuid("lease_token"),
+    leaseUntil: timestamp("lease_until", { withTimezone: true }),
+    lastError: text("last_error"),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (t) => [
+    unique("outbox_org_id_unique").on(t.organizationId, t.id),
+    index("outbox_claim_idx").on(t.status, t.availableAt, t.leaseUntil),
+    check(
+      "outbox_processing_check",
+      sql`${t.status} in ('pending','processing','completed','failed') and ${t.attempts} >= 0 and ((${t.status} = 'processing' and ${t.leaseToken} is not null and ${t.leaseUntil} is not null) or (${t.status} <> 'processing' and ${t.leaseToken} is null and ${t.leaseUntil} is null))`,
+    ),
     unique("outbox_transition_unique").on(t.organizationId, t.transitionId),
     foreignKey({
       columns: [t.organizationId, t.transitionId],
       foreignColumns: [transitionEvents.organizationId, transitionEvents.id],
+    }),
+  ],
+);
+
+// M4 configuration versions and execution identities are protected by migration triggers.
+export const automations = pgTable(
+  "crm_automations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    name: text("name").notNull(),
+    revision: integer("revision").notNull().default(0),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    ...timestamps(),
+  },
+  (t) => [unique("automations_org_id_unique").on(t.organizationId, t.id)],
+);
+export const automationVersions = pgTable(
+  "crm_automation_versions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    automationId: uuid("automation_id").notNull(),
+    number: integer("number").notNull(),
+    funnelVersionId: uuid("funnel_version_id").notNull(),
+    stageId: text("stage_id").notNull(),
+    definition: jsonb("definition")
+      .$type<import("../automation/definition").AutomationDefinition>()
+      .notNull(),
+    publishedBy: text("published_by").notNull(),
+    commandKey: uuid("command_key").notNull(),
+    requestHash: text("request_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("automation_versions_org_id_unique").on(t.organizationId, t.id),
+    unique("automation_versions_number_unique").on(
+      t.organizationId,
+      t.automationId,
+      t.number,
+    ),
+    unique("automation_versions_command_unique").on(
+      t.organizationId,
+      t.commandKey,
+    ),
+    foreignKey({
+      columns: [t.organizationId, t.automationId],
+      foreignColumns: [automations.organizationId, automations.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.funnelVersionId],
+      foreignColumns: [funnelVersions.organizationId, funnelVersions.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.publishedBy],
+      foreignColumns: [memberships.organizationId, memberships.userId],
+    }),
+  ],
+);
+export const automationRuns = pgTable(
+  "crm_automation_runs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id").notNull(),
+    workflowVersionId: uuid("workflow_version_id").notNull(),
+    status: text("status").notNull().default("pending"),
+    error: text("error"),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("automation_runs_identity").on(
+      t.organizationId,
+      t.eventId,
+      t.workflowVersionId,
+    ),
+    unique("automation_runs_org_id_unique").on(t.organizationId, t.id),
+    check(
+      "automation_runs_status",
+      sql`${t.status} in ('pending','completed','skipped','failed')`,
+    ),
+    foreignKey({
+      columns: [t.organizationId, t.eventId],
+      foreignColumns: [outboxEvents.organizationId, outboxEvents.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.workflowVersionId],
+      foreignColumns: [
+        automationVersions.organizationId,
+        automationVersions.id,
+      ],
+    }),
+  ],
+);
+export const automationActions = pgTable(
+  "crm_automation_actions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    runId: uuid("run_id").notNull(),
+    actionId: text("action_id").notNull(),
+    kind: text("kind").notNull(),
+    effectId: uuid("effect_id").notNull(),
+    recipientId: text("recipient_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("automation_actions_identity").on(
+      t.organizationId,
+      t.runId,
+      t.actionId,
+    ),
+    foreignKey({
+      columns: [t.organizationId, t.runId],
+      foreignColumns: [automationRuns.organizationId, automationRuns.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.recipientId],
+      foreignColumns: [memberships.organizationId, memberships.userId],
+    }),
+  ],
+);
+export const notifications = pgTable(
+  "crm_notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    recipientId: text("recipient_id").notNull(),
+    dealId: uuid("deal_id").notNull(),
+    runId: uuid("run_id").notNull(),
+    actionId: text("action_id").notNull(),
+    message: text("message").notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("notifications_action_unique").on(
+      t.organizationId,
+      t.runId,
+      t.actionId,
+    ),
+    index("notifications_recipient_idx").on(
+      t.organizationId,
+      t.recipientId,
+      t.createdAt,
+    ),
+    foreignKey({
+      columns: [t.organizationId, t.recipientId],
+      foreignColumns: [memberships.organizationId, memberships.userId],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.dealId],
+      foreignColumns: [deals.organizationId, deals.id],
+    }),
+    foreignKey({
+      columns: [t.organizationId, t.runId],
+      foreignColumns: [automationRuns.organizationId, automationRuns.id],
     }),
   ],
 );

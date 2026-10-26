@@ -10,7 +10,7 @@ Deliver the BRD section 66 MVP as a coherent product: shared CRM, visual funnel 
 
 The application uses Next.js 16.4.2 App Router, React 19, TypeScript, Tailwind, Neon Auth, Neon Postgres and Drizzle. Before Phase 1, capabilities were personal owner-scoped CRUD, a fixed five-stage deal enum, dashboard counts and PGlite tests. Phase 1 adds organizations, membership/teams, fixed role policies, scoped transactional CRM, invitations, audit, soft deletion and pagination.
 
-Phase 2 adds lead conversion, CRM lifecycle/opportunity fields, products/sources, activities and a basic Customer 360. M3 adds configurable ordered funnels, immutable publication, pinned execution/history and the pipeline board. Remaining major gaps are durable automation processing, richer reporting, integrations and live release acceptance. USD formatting and integer money storage remain explicit existing defaults for review. Physical deletion and the 200-record list cutoff have been replaced in Phase 1. Source inspection does not constitute live authentication or database verification.
+Phase 2 adds lead conversion, CRM lifecycle/opportunity fields, products/sources, activities and a basic Customer 360. M3 adds configurable ordered funnels, immutable publication, pinned execution/history and the pipeline board. M4 adds versioned stage-entry workflows, task/in-app actions and a standalone leased worker. Remaining major gaps are worker hosting/live acceptance, richer reporting, integrations and pilot release acceptance. USD formatting and integer money storage remain explicit existing defaults for review. Physical deletion and the 200-record list cutoff have been replaced in Phase 1. Source inspection does not constitute live authentication or database verification.
 
 ## MVP scope
 
@@ -33,7 +33,7 @@ Retain Cache Components and authenticated Suspense boundaries. Read authoritativ
 
 Use small client components for the designer and board. Include keyboard stage movement, pending feedback, validation, loading, empty and error states.
 
-Use atomic transactions for conversion, publication and stage movement. M1/M2 already selected `pg` with Drizzle node-postgres for interactive transactions; M0 records that decision and its conservative per-tenant locking tradeoff. Publication/movement remain future M3 work. Do not revert to Neon HTTP while assuming equivalent interactive read/validate/write behavior.
+Use atomic transactions for conversion, publication and stage movement. M1/M2 already selected `pg` with Drizzle node-postgres for interactive transactions; M0 records that decision and its conservative per-tenant locking tradeoff. M3 implements publication/movement; M4 adds durable processing. Do not revert to Neon HTTP while assuming equivalent interactive read/validate/write behavior.
 
 Persist an outbox event in the business transaction and process it through a durable worker. Jobs require leases, bounded retries, idempotency, failure inspection and controlled replay. Select hosting and scheduling during inception; background work must survive request completion and restarts.
 
@@ -88,7 +88,7 @@ Dependencies are sequential: access precedes shared CRM; CRM precedes execution;
 
 ### M0 Inception
 
-**Decision update (26 October 2026):** User approved D05 manual seven-day verified-email invitations, D06 explicit customer matching/no automatic merge, D12 configurable completed-call gates disabled by default and scoped funnel/automation permissions, and D13 documented reporting definitions/fixtures with separate opportunity status. Administrators configure/publish; Managers/Representatives move permitted opportunities; Read-only views permitted records. Opportunity Won/Lost requires an explicit action. Dedicated pause/resume and terminal reopening are deferred; stage revisits require published edges and complete visit history. Current M3 only supports ordered forward transitions, so revisit support remains an implementation gap rather than a delivered capability. Automation permissions and reporting remain M4/M5 contracts.
+**Decision update (26 October 2026):** User approved D05 manual seven-day verified-email invitations, D06 explicit customer matching/no automatic merge, D12 configurable completed-call gates disabled by default and scoped funnel/automation permissions, and D13 documented reporting definitions/fixtures with separate opportunity status. Administrators configure/publish; Managers/Representatives move permitted opportunities; Read-only views permitted records. Opportunity Won/Lost requires an explicit action. Dedicated pause/resume and terminal reopening are deferred; stage revisits require published edges and complete visit history. Current M3 only supports ordered forward transitions, so revisit support remains an implementation gap rather than a delivered capability. M4 now enforces automation permissions locally; reporting remains an M5 contract.
 
 Operating answers were unfilled template alternatives: existing-data classification, providers/region/budget, pilot commitment, named owners, service targets, retention/erasure and requirements authority remain unresolved. No paid service or runtime/data change is authorized by this documentation update. See the [dated reconciliation and decision register](m0-inception.md#decision-update--26-october-2026). M0 and pilot acceptance remain open pending operating decisions and live evidence.
 
@@ -127,7 +127,7 @@ Agree MVP versus initial-release scope, role permissions, visibility, terminolog
 - [x] Local verification: nine PGlite/validation tests, one PostgreSQL 17 transaction/concurrency integration test and one Chromium workspace/permission workflow pass. Lint, TypeScript and production-build results are recorded in the task report.
 - [ ] Apply/rehearse against a disposable Neon branch; verify real sessions, transactions/concurrency, backup restoration and deployment inventory. No live database migration is implied by source tests.
 
-The M0 section separately records confirmed scope/roles/locale and outstanding product decisions; M1 defaults alone did not establish that agreement. M2 and M3 implementation are recorded below; M4/M5 delivery remains pending.
+The M0 section separately records confirmed scope/roles/locale and outstanding product decisions; M1 defaults alone did not establish that agreement. M2–M4 implementation is recorded below; live delivery verification and M5 remain pending.
 
 Validate active organization context from server membership. Implement view/create/edit/delete/assign/approve/export/configure permissions. Start with Administrator, Manager, Representative and Read-only presets, explicitly mapping other personas. Deny unsupported department scopes rather than broadening access. Write audit alongside mutations and identify identity-provider login audit support. Adapt every existing query, mutation and company link; add pagination and update personal-workspace wording.
 
@@ -145,7 +145,7 @@ Validate active organization context from server membership. Implement view/crea
 - [x] Local verification: 16 validation/PGlite tests, two PostgreSQL 17 transaction/concurrency tests, and two Chromium workflow/permission tests pass; lint, TypeScript, production build and schema-drift check pass. Browser identity is simulated, not a live Neon session.
 - [ ] Live Neon migration/session and backup/restore rehearsal, and product validation against the missing source BRD. No production deployment is implied by local verification.
 
-At the M2 delivery boundary, M3–M5 were not included. The subsequent M3 section records designer/execution work; M4 automation processing and M5 reporting/release remain pending.
+At the M2 delivery boundary, M3–M5 were not included. The subsequent M3 section records designer/execution work; M4 processing is recorded below; hosting/live verification and M5 reporting/release remain pending.
 
 Implement the section 13–16 fields, lifecycle, products, expected close, probability, source and notes. Lead conversion must be atomic and idempotent, support matching existing records, and retain conversion provenance. Add activities and timeline events. Manual email records do not imply mailbox synchronization. Add administrator product/source configuration, duplicate warnings and simple tags.
 
@@ -162,12 +162,22 @@ Implement the section 13–16 fields, lifecycle, products, expected close, proba
 - [x] Local verification: lint, TypeScript and production build; 25 validation/PGlite tests, three PostgreSQL 17 integration cases, four Chromium application journeys, a production-build same-session two-tab stale/recovery smoke check and a no-drift schema check pass. Auth is simulated in browser checks.
 - [ ] Rehearse live Neon sessions/migration/concurrency, backup restoration and deployment inventory; M0 locale/verified-session follow-ups remain separate pre-pilot gates.
 
-M4 automation processing, notifications, workflow actions and M5 analytics are not implemented by this change. Runtime opportunity money remains USD until the explicitly tracked PHP denomination rollout; new journey timestamps show Asia/Manila without altering stored instants.
+This M3 change did not include M4 processing, notifications or workflow actions; their subsequent implementation is recorded under M4. M5 analytics remain pending. Runtime opportunity money remains USD until the explicitly tracked PHP denomination rollout; new journey timestamps show Asia/Manila without altering stored instants.
 
 
 Implement stage add/reorder/configuration, probability, target duration, responsible role and required standard fields/activities. Store layout separately from execution semantics. Publish and enroll before enabling dragging. Route every movement through the execution contract. Add outcomes and reasons, version-aware history, cloning, archiving and aging thresholds. Do not fabricate historical transitions.
 
 ### M4 Basic automation
+
+**M4 status (26 October 2026): implemented locally; hosted/live release verification pending.** See [M4 policies, migration, worker operation and verification](phase-4-automation.md).
+
+- [x] Administrator publication of immutable workflow versions for a specific published funnel version/stage, with typed AND conditions and task/in-app notification actions.
+- [x] Named active member and per-task elapsed due-hour offsets; current subject access is rechecked at execution. User selected latest workflow/current opportunity fields at first processing, including existing pending events; retries/replay retain the persisted evaluation plan.
+- [x] Standalone Node worker, fenced two-minute database leases, competing claims, expiry recovery, six-attempt retry budget, sanitized failures and administrator-only controlled replay.
+- [x] Atomic effect/action-receipt/audit writes, unique event/version/action identity, provenance/history and visibility-checked notification inbox.
+- [x] Local verification: 35 tests, four PostgreSQL 17 integration cases, five Chromium journeys, lint, TypeScript, production build and no-drift schema check pass; see the M4 report for limits.
+- [ ] Select/provision hosting through a separately authorized rollout and demonstrate live Neon sessions/migration/concurrency, worker restart/replay, monitoring and timed backup restoration. M0 operating decisions, locale/security gates, M5 and pilot acceptance remain open.
+
 
 Use typed triggers, operators, fields and actions with no arbitrary user code. Snapshot workflow versions and record execution provenance. Deduplicate by event, workflow version and action identity. Constrain automation permissions, verify tenant boundaries and surface failures. Introduce loop/depth controls before stage-changing or cross-funnel actions in 1.1.
 

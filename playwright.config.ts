@@ -32,6 +32,7 @@ export default defineConfig({
       timeout: 120000,
       reuseExistingServer: false,
       env: {
+        SPLASH_BROWSER_TEST_BUILD: "1",
         DATABASE_URL: database,
         NEON_AUTH_BASE_URL: "http://127.0.0.1:4444/auth",
         NEON_AUTH_COOKIE_SECRET: randomBytes(32).toString("hex"),

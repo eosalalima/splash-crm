@@ -105,3 +105,8 @@ See the [M0 inception package](docs/m0-inception.md) for the confirmed scope/rol
 ## M3 funnels and pipeline
 
 Use **Funnels** to create/clone the approved standard template, save a draft and publish an immutable version. Open an opportunity to enroll it, then use its **Pipeline** and **Journey history** links. Keyboard and drag-to-select movement use the same validated server command. See [M3 migration, versioning and checks](docs/phase-3-funnels.md) before applying migration `0003`; existing deals receive retired legacy versions with explicitly unknown historical entry times. Outbox events are persisted, but worker processing belongs to M4. Existing opportunity money remains USD until the separate PHP rollout.
+
+
+## M4 automation and notifications
+
+Administrators use **Settings → Manage automation** to publish stage-entry workflows with named recipients, typed conditions, follow-up tasks and in-app notifications. Members use **Notifications** to read updates for opportunities they can currently access. See [M4 migration, processing semantics and worker instructions](docs/phase-4-automation.md) before applying migration `0004` and starting `npm run worker:automation` against an explicitly selected database. The worker is a separate process, not part of `next dev`/`next start`. New workflows can apply to existing pending M3 events under the user-approved latest-at-first-processing policy; retries keep their original evaluation and effects. Hosting, real Neon acceptance and pilot gates remain open.
