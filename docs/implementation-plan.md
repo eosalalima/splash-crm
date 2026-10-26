@@ -88,7 +88,11 @@ Dependencies are sequential: access precedes shared CRM; CRM precedes execution;
 
 ### M0 Inception
 
-**M0 status (21 October 2026): inception documents and offline prototype delivered; decision/operational exit gate still open.** See the [M0 inception package and decision register](m0-inception.md). This work implements M0 planning/prototyping only, with no CRM schema, runtime feature, currency migration or deployment change.
+**Decision update (26 October 2026):** User approved D05 manual seven-day verified-email invitations, D06 explicit customer matching/no automatic merge, D12 configurable completed-call gates disabled by default and scoped funnel/automation permissions, and D13 documented reporting definitions/fixtures with separate opportunity status. Administrators configure/publish; Managers/Representatives move permitted opportunities; Read-only views permitted records. Opportunity Won/Lost requires an explicit action. Dedicated pause/resume and terminal reopening are deferred; stage revisits require published edges and complete visit history. Current M3 only supports ordered forward transitions, so revisit support remains an implementation gap rather than a delivered capability. Automation permissions and reporting remain M4/M5 contracts.
+
+Operating answers were unfilled template alternatives: existing-data classification, providers/region/budget, pilot commitment, named owners, service targets, retention/erasure and requirements authority remain unresolved. No paid service or runtime/data change is authorized by this documentation update. See the [dated reconciliation and decision register](m0-inception.md#decision-update--26-october-2026). M0 and pilot acceptance remain open pending operating decisions and live evidence.
+
+**M0 status (updated 26 October 2026): inception documents and offline prototype delivered; decision/operational exit gate still open.** See the [M0 inception package and decision register](m0-inception.md). This work implements M0 planning/prototyping only, with no CRM schema, runtime feature, currency migration or deployment change.
 
 - [x] Compare the current schema, policy, authentication, transactions, workflows and deployment inventory with the plan; distinguish existing M1/M2 code from unimplemented M3–M5 contracts.
 - [x] User confirmed the current MVP scope and four-role matrix (Administrator, Manager, Representative, Read-only).
@@ -101,7 +105,8 @@ Dependencies are sequential: access precedes shared CRM; CRM precedes execution;
 - [x] Validate local documentation/asset links, JavaScript syntax and lint; 39 Chromium prototype checks pass, including keyboard/error/version previews and responsive light/dark layouts. These checks do not prove production funnel execution.
 - [ ] Confirm hosting/provider/region/budget, pilot volume/named owners, retention/privacy and service target feasibility; these remain proposals.
 - [x] User approved the default M0 prototype’s stage order, probabilities, durations and required fields on 21 October 2026; exact scope/values are recorded in the M0 decision register (D12).
-- [ ] Confirm remaining activity-gate/responsibility, metric/outcome/invitation details, reconcile the missing authoritative BRD and record remaining reviewer findings before closing the inception gate.
+- [x] Confirm invitation/customer matching, optional default-off activity gates, scoped permissions and metric/outcome policy (26 October 2026; D05–D06/D12–D13).
+- [ ] Assign named owners, reconcile the missing authoritative BRD/requirements authority and record remaining reviewer findings before closing inception.
 - [ ] Supply live verification/session and backup/restore evidence and deliver the recorded locale/security follow-ups before pilot acceptance. These are tracked future delivery gates, not work claimed complete under M0.
 
 
@@ -175,7 +180,7 @@ Use version-aware reporting and preserve visibility in aggregates and drill-down
 - Funnel entries: distinct instances enrolled during the selected entry-date cohort, grouped by version.
 - Funnel conversion: converted instances divided by all cohort entries; show active instances and observation cutoff.
 - Stage conversion: distinct instances taking a selected outgoing transition divided by distinct instances entering its source stage in the cohort.
-- Drop-off: unsuccessful terminal instances divided by entries, attributed to the exit stage. Decide whether deferred/backburner means paused or terminal.
+- Drop-off: unsuccessful terminal instances divided by entries, attributed to the exit stage. Dedicated pause/resume is deferred; do not silently classify deferred/backburner as a terminal loss.
 - Stage duration: completed visits; show open-visit age separately and define re-entry counting.
 - Aging: current age against versioned thresholds with an agreed elapsed-hours/business-days calendar.
 - Pipeline: open opportunity amounts in permitted scope; weighted pipeline uses effective probability with explicit override precedence.
@@ -241,7 +246,7 @@ Agree measurable workload and service targets during M0. Suggested starting poin
 
 ## Decisions and risks
 
-The M0 user-confirmed baseline is the current MVP boundary/four roles plus PHP, Asia/Manila and elapsed calendar time. Resolve before dependent implementation: source BRD reconciliation; actual tenant/denomination inventory and locale rollout; future funnel/automation permissions; customer-identity exceptions; terminal/paused outcomes and re-entry; template/gates; worker hosting/region/budget; pilot volume; service/recovery feasibility; retention/privacy and attachment storage.
+The M0 user-confirmed baseline is the current MVP boundary/four roles plus PHP, Asia/Manila and elapsed calendar time. Resolve before dependent implementation: source BRD reconciliation; actual tenant/denomination inventory and locale rollout; implementation of approved automation permissions and future revisit semantics; worker hosting/region/budget; pilot volume; service/recovery feasibility; retention/privacy and attachment storage.
 
 Key risks are isolation regressions during migration, mutable definitions corrupting history, duplicate automation after retries, misleading metrics and excessive administrator complexity. Mitigate with tenant-aware constraints and negative tests, immutable versions, outbox/idempotency, agreed reporting fixtures and guided templates with minimal mandatory fields.
 

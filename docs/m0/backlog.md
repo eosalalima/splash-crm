@@ -2,7 +2,11 @@
 
 This is an actionable decomposition of the [implementation plan](../implementation-plan.md), not a transcription of the unavailable source BRD. FR references below retain the plan's identifiers/coverage grouping. In particular, FR-001–004 are mapped as one CRM group because assigning an exact original requirement sentence to each would invent source detail. **BR-004 is the only numbered business rule identified in the repository.** Other rules below have local acceptance IDs (A01–A12), not invented BR numbers.
 
-Statuses distinguish **code present / acceptance pending**, **planned**, **deferred**, and **source reconciliation open**. M0 creates planning artifacts only; it does not deliver M3–M5 code. Responsibilities name roles to assign, not people already assigned.
+Statuses distinguish **code present / acceptance pending**, **planned**, **deferred**, and **source reconciliation open**. The original M0 package created planning artifacts only; M3 was subsequently implemented separately. M4/M5 remain pending. Responsibilities name roles to assign, not people already assigned.
+
+## Status reconciliation — 26 October 2026
+
+The user approved D05–D06 and D12–D13 product policies in the [decision register](../m0-inception.md#decision-update--26-october-2026). Operating template answers remain unfilled. M3 code/local verification now exists; live acceptance remains pending. Approved revisits require future validator/schema/service work because current M3 allows only ordered forward edges and one visit per stage. M4 automation, M5 reporting, OPS-01 locale rollout and IAM-02/live identity evidence remain pending. Named owners and requirements authority are unresolved.
 
 ## Delivery backlog
 
@@ -10,11 +14,11 @@ Statuses distinguish **code present / acceptance pending**, **planned**, **defer
 | --- | --- | --- | --- | --- |
 | CRM-01 | FR-001–004 | Leads, contact/account lifecycle, opportunities; sales/data owner | Tenant-scoped CRUD, pagination, duplicates, validated money/links, logical deletion; A01 | M1/M2 code present; full source fields/live acceptance pending |
 | CRM-02 | FR-001–004, FR-017 | Explicit lead conversion/matching/provenance; sales/data owner | A02/A03 repeated/concurrent conversion and injected audit failure; original matched records unchanged | M2 code present; live acceptance pending |
-| DES-01 | FR-005–006, FR-029 | Draft ordered editor and standard fields/activity gates; product/sales owner | M0 prototype review; A05 invalid draft rejection; semantic/layout separation, keyboard reorder; no custom-field engine in MVP | M3 planned |
-| DES-02 | FR-007 | Explicit versioned transition edges; product/technical owner | DES-01; reachable entry/terminals and required reasons; conditional branching operators deferred | M3 minimal edges planned; branching 1.1 |
-| EXE-01 | FR-008–010, BR-004 | Publish, enroll, one active instance per opportunity; technical owner | DES-01/02; A05 published immutability, old-version pinning, tenant-aware uniqueness | M3 planned |
-| EXE-02 | FR-008–010, BR-004 | Atomic movement/history and board; technical/sales owner | EXE-01; A06/A07 missing fields, stale revision, repeated key and concurrent commands; one open visit; keyboard movement/error rollback | M3 planned |
-| EXE-03 | FR-008–010 | Outcomes, reasons, re-entry and baseline migration; product/data owner | Decide paused/re-entry rules; A08 no stage-label/status inference; mark unknown historical entry; preserve deal IDs | M3 planned; business choices open |
+| DES-01 | FR-005–006, FR-029 | Draft ordered editor and standard fields/activity gates; product/sales owner | M0 prototype review; A05 invalid draft rejection; semantic/layout separation, keyboard reorder; no custom-field engine in MVP | M3 code present; live acceptance pending |
+| DES-02 | FR-007 | Explicit versioned transition edges; product/technical owner | DES-01; reachable entry/terminals and required reasons; conditional branching operators deferred | M3 ordered edges code present; revisit support pending; branching 1.1 |
+| EXE-01 | FR-008–010, BR-004 | Publish, enroll, one active instance per opportunity; technical owner | DES-01/02; A05 published immutability, old-version pinning, tenant-aware uniqueness | M3 code present; live acceptance pending |
+| EXE-02 | FR-008–010, BR-004 | Atomic movement/history and board; technical/sales owner | EXE-01; A06/A07 missing fields, stale revision, repeated key and concurrent commands; one open visit; keyboard movement/error rollback | M3 code present; live acceptance pending |
+| EXE-03 | FR-008–010 | Outcomes, reasons, re-entry and baseline migration; product/data owner | Apply approved separate status, deferred pause/terminal reopening and published-edge revisit policy; A08 no stage-label/status inference; mark unknown historical entry; preserve deal IDs | M3 ordered outcomes/baseline code present; approved revisit support pending; live acceptance pending |
 | AUT-01 | FR-011 | Stage-entry conditions, task/in-app actions, outbox; technical owner | EXE-02 commits events; hosted durable worker selected; A09 crash/replay and authorization | M4 planned |
 | AUT-02 | FR-011 | Rich workflow actions and stage-changing loop controls | AUT-01; specify depth/cycle limits before arbitrary feedback paths | 1.1 deferred |
 | ACT-01 | FR-012 | Activity ownership/due/priority/status/outcome and manual communications; sales owner | A04 scoped linked/unlinked activities and Customer 360; no mailbox sending claim | M2 code present; live acceptance pending; provider sync 1.2 |
@@ -29,8 +33,8 @@ Statuses distinguish **code present / acceptance pending**, **planned**, **defer
 | INT-01 | FR-025–026 | Shared internal domain contracts; technical owner | All callers enforce same permissions/transactions; no public bypass | Existing internal services; public API/scoped credentials/webhooks/replay 1.1 |
 | PRD-01 | FR-027 | Product configuration and opportunity snapshot lines; administrator | Reprice/archive leaves line snapshots intact; quantity limits; opportunity value remains explicit | M2 code present; live acceptance pending |
 | NOT-01 | FR-028 | In-app notifications tied to stage-entry events; technical/product owner | AUT-01; one recipient/effect per event/action, current subject visibility on read | M4 planned; email/other channels 1.1 |
-| FLD-01 | FR-029 | Standard required fields in stage gates; product owner | DES-01/A06 use known schema fields; reject unknown references | M3 planned; administrator-defined types/lookups 1.1 |
-| TMP-01 | FR-030 | One cloneable standard sales template; sales owner | M0 prototype accepted, clone creates draft, no mutation of referenced published version | M3 planned; managed library 1.1 |
+| FLD-01 | FR-029 | Standard required fields in stage gates; product owner | DES-01/A06 use known schema fields; reject unknown references | M3 code present; live acceptance pending; administrator-defined types/lookups 1.1 |
+| TMP-01 | FR-030 | One cloneable standard sales template; sales owner | M0 stage/default-off activity/permission policy approved; clone creates draft, no mutation of referenced published version | M3 code present; live acceptance pending; managed library 1.1 |
 | OPS-01 | Cross-cutting; no supplied BR number | Confirmed PHP/Asia-Manila/elapsed convention rollout; product/finance/technical owner | Inventory actual denominations and tenants, resolve legacy USD data via approved conversion or separation, add coherent currency-aware display/storage policy and local date/input conversion; no mixed totals; test UTC boundary and explicit zero probability | Required before PHP pilot; runtime changes outside this M0 task |
 | OPS-02 | Cross-cutting; A11 | Hosting, monitoring, backup/restore, retention and pilot; operations/data owner | Named providers/region/budget/owners; workload, RPO/RTO, permissions and restart/replay evidence per operations document | M0 proposal; delivery/evidence M4/M5 |
 | SRC-02 | BRD sections 8/13–16/66/72 and missing BR list | Source reconciliation and exceptions; product owner | Acquire authoritative version, map exact fields/exclusions/acceptance and additional BR IDs, record delta decisions before claiming sign-off | Open; no fabricated source requirements |
@@ -62,9 +66,9 @@ Statuses distinguish **code present / acceptance pending**, **planned**, **defer
 
 ## Sequence and review responsibilities
 
-1. Product owner accepts the already-confirmed scope/role/locale baseline and resolves source/template/outcome choices. Record unresolved differences as decisions, not implicit changes.
+1. Product owner maintains the confirmed scope/role/locale and 26 October product decisions and resolves remaining source/operating choices. Record unresolved differences as decisions, not implicit changes.
 2. Technical/data owners plan OPS-01 and IAM-02 before PHP pilot data; existing M1/M2 live acceptance remains pending.
-3. Sales/product/technical owners review the M0 prototype and metric examples, then refine M3 estimates around DES/EXE/TMP items. No new schedule is committed here.
+3. Sales/product/technical owners verify M3 against approved template/outcome policy and scope future revisit changes; reporting owners use approved metric examples for M5. No new schedule is committed here.
 4. Operations chooses hosting/worker/pilot volume/budget/retention, then M4 implements and rehearses AUT/NOT contracts.
 5. Reporting/operations demonstrate REP-01 and OPS-02 against fixtures, scoped browser journeys and a timed restore before the pilot exit decision.
 

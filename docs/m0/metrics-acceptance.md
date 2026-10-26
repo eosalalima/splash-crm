@@ -1,6 +1,6 @@
 # M0 metric definitions and acceptance examples
 
-Definitions are proposed for sales/reporting review; the pilot conventions **PHP, Asia/Manila, elapsed calendar time** are confirmed by the user. The current dashboard is limited to counts and legacy-stage aggregates; the versioned metrics below are design contracts, not new reports implemented by M0.
+Definitions and acceptance fixtures were approved by the user on 26 October 2026; the pilot conventions **PHP, Asia/Manila, elapsed calendar time** are confirmed by the user. The current dashboard is limited to counts and legacy-stage aggregates; the versioned metrics below are design contracts, not new reports implemented by M0.
 
 ## Reporting contract
 
@@ -13,16 +13,16 @@ Use Asia/Manila local boundaries for selected reporting dates, then convert them
 | Funnel entries | Distinct instances enrolled during the entry-date cohort, per immutable version | Not “records updated during period”; exclude explicitly synthetic migration enrollment from historical business claims |
 | Funnel conversion | Successful terminal instances / all entries in that cohort, as of cutoff | Show active count and cutoff; not successful / closed only |
 | Stage conversion | Distinct cohort instances taking a selected outgoing transition / distinct cohort instances entering its source stage | Count an instance once per chosen edge even on re-entry; publish numerator/denominator; version-specific |
-| Drop-off | Unsuccessful terminal instances / all cohort entries, attributed to the exit stage | Open journeys are not drop-offs. Deferred/paused handling remains unresolved; do not map it silently to lost |
+| Drop-off | Unsuccessful terminal instances / all cohort entries, attributed to the exit stage | Open journeys are not drop-offs. Dedicated pause/resume is deferred; do not map deferred work silently to lost |
 | Completed stage duration | Per-visit `exitedAt - enteredAt`, summarized with count and median/p95 | Exclude unknown-entry baselines; repeated entry is a separate visit. Do not substitute record creation time |
 | Open-stage age | `asOf - currentVisit.enteredAt` | Separate from completed duration; unknown baseline ages display unknown |
 | Aging threshold | Open-stage age strictly greater than versioned target elapsed hours | At exactly 48h a 48h target is not yet overdue; target zero/no target is untracked |
 | Open pipeline | Sum of visible open opportunity values, grouped by currency | Count opportunity once despite multiple product lines or journeys; use opportunity value, not catalog totals |
-| Weighted pipeline | Sum(value × effective probability / 100), grouped by currency | Proposed precedence: explicit opportunity override, otherwise pinned-stage probability. Current always-defaulted integer probability cannot distinguish “no override” from explicit 0%; M3/reporting must add that distinction, not use `probability || stageProbability` |
+| Weighted pipeline | Sum(value × effective probability / 100), grouped by currency | Approved precedence: explicit opportunity override, otherwise pinned-stage probability. Current always-defaulted integer probability cannot distinguish “no override” from explicit 0%; M3/reporting must add that distinction, not use `probability || stageProbability` |
 | Cycle time | Enrollment to successful completion for successful cohort instances | Report sample size and cutoff; open/lost instances excluded from successful-cycle durations but remain in conversion denominator |
 | Follow-up overdue | Visible open activities with non-null dueAt strictly before asOf | Completed/cancelled and no-due-date activities are not overdue; completion outcome is required |
 
-Re-entry is included in proposed stage-instance conversion counts once, while visit duration counts each visit. Business agreement on allowing re-entry/re-enrollment and paused outcomes is still open. Metric arithmetic below does not resolve that product choice.
+Approved revisit semantics count an instance once per edge for stage conversion, while duration counts every visit. Only published edges may permit revisits; current M3 enforces forward ordered edges and one visit per stage, so revisit support requires future implementation. Dedicated pause/resume and reopening completed journeys are deferred; explicitly enrolling a new journey after completion is separate. Journey completion never implicitly changes opportunity Won/Lost status.
 
 ## Hand-calculated cohort fixture
 
@@ -53,7 +53,7 @@ Duration fixture: completed Qualified visits last 24h, 48h and 72h. Median = **4
 | P5 | PHP | Open, outside viewer scope | ₱1,000.00 | 100% | Excluded |
 | P6 | PHP | Open | ₱1,000.00 | Explicit 0% override | ₱0.00 |
 
-Visible PHP open pipeline = **₱16,000.00**. Weighted PHP pipeline = **₱5,000.00**. USD is a separate $100.00 / $50.00 group, never added as 100 pesos. Product lines must not multiply either pipeline total. The no-override P2 behavior is a proposed later contract, not something the current default-zero probability column can represent.
+Visible PHP open pipeline = **₱16,000.00**. Weighted PHP pipeline = **₱5,000.00**. USD is a separate $100.00 / $50.00 group, never added as 100 pesos. Product lines must not multiply either pipeline total. The no-override P2 behavior is an approved, unimplemented reporting contract, not something the current default-zero probability column can represent.
 
 ## Acceptance examples for delivery backlog
 
@@ -64,9 +64,9 @@ Visible PHP open pipeline = **₱16,000.00**. Weighted PHP pipeline = **₱5,000
 | A03 Matching | Match an existing visible contact/account without overwriting them. Cross-tenant, hidden or incompatible contact/account selection fails atomically | M2 |
 | A04 Activity | Create unlinked or visible-linked activity; completing without outcome fails; completing with outcome writes stable completion timestamp and Customer 360 event. Manual email sends no message | M2 |
 | A05 Publication | Draft with missing entry/unreachable stage/invalid reference cannot publish. Valid v1 publishes immutably; v2 edits never rewrite an instance on v1 | M3 |
-| A06 Movement | Qualified → Proposal missing expected close or completed call returns actionable errors and leaves history unchanged. After correction, exactly one visit closes/opens and revision increments with audit/outbox | M3 |
+| A06 Movement | Qualified → Proposal missing expected close, or missing a completed call when that optional gate is explicitly configured, returns actionable errors and leaves history unchanged. After correction, exactly one visit closes/opens and revision increments with audit/outbox | M3 |
 | A07 Repetition/conflict | Retrying one movement command returns the original result; two different commands with the same expected revision yield one success and one conflict, with one active visit | M3 |
-| A08 Outcomes | Abnormal exit requires a configured reason. Journey outcome and opportunity status are updated only through an explicit documented policy, never inferred from a stage label | M3 |
+| A08 Outcomes | Abnormal exit requires a configured reason. Journey outcome changes through validated movement; opportunity Won/Lost requires a separate explicit action, never inference from a stage label | M3 |
 | A09 Automation | Crash after task creation but before acknowledgement; replay uses event/version/action identity and produces one task and notification. Failure becomes inspectable after bounded retries | M4 |
 | A10 Reporting | Cohort and money fixtures above match hand calculation; cross-scope drill-downs agree; version/denominator/timezone/currency/as-of are visible; unknown baselines stay unknown | M5 |
 | A11 Recovery | Restore into isolated database, reconcile tenant counts/links and audit/transition/outbox invariants, replay outstanding jobs without duplicates, then measure RPO/RTO | M5 / operations |

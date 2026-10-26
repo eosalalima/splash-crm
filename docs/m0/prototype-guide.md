@@ -6,7 +6,7 @@ The user confirmed PHP, Asia/Manila and elapsed calendar time. The sample displa
 
 ## Template approval
 
-On **21 October 2026**, the user explicitly approved the default prototype’s **stage order, probabilities, durations and required fields**, based on the prototype committed in `fcc82a4`. The exact instruction and approved values are recorded in the [M0 decision register](../m0-inception.md#prototype-approval--21-october-2026). Stage responsibility, future permissions and the separate completed-call activity gate remain proposed. This records design approval; M0 operating decisions and M3 delivery acceptance remain open.
+On **21 October 2026**, the user explicitly approved the default prototype’s **stage order, probabilities, durations and required fields**, based on the prototype committed in `fcc82a4`. The exact instruction and approved values are recorded in the [M0 decision register](../m0-inception.md#prototype-approval--21-october-2026). On 26 October 2026 the user approved scoped permissions and configurable completed-call gates disabled in the starter template. Editable stage-role values remain guidance. The unchanged offline prototype still illustrates a configured call gate; it is not the production default. This records design approval; M0 operating decisions and M3 delivery acceptance remain open.
 
 ## Template baseline
 
@@ -14,11 +14,11 @@ On **21 October 2026**, the user explicitly approved the default prototype’s *
 | --- | --- | --- | --- | --- | --- |
 | Lead | Entry | 10% | 48 | Representative | Standard opportunity identity; no additional gate illustrated |
 | Qualified | Intermediate | 30% | 72 | Representative | No additional gate illustrated |
-| Proposal | Intermediate | 60% | 120 | Manager | Expected close date (approved field); completed call (proposed activity gate) |
-| Won | Successful terminal | 100% | None | Representative | No additional gate illustrated; final success/status policy needs review |
+| Proposal | Intermediate | 60% | 120 | Manager | Expected close date (approved field); completed call (illustrated opt-in gate; production default is disabled) |
+| Won | Successful terminal | 100% | None | Representative | No additional gate illustrated; opportunity status requires a separate explicit action |
 | Lost | Unsuccessful terminal | 0% | None | Representative | Outcome reason |
 
-Approved standard flow: Lead → Qualified → Proposal → Won, plus Lost from every nonterminal stage. Stage order, probabilities, elapsed-hour durations and required fields are approved design defaults. Responsibilities and the completed-call activity gate remain proposals. None of these defaults is inferred historical behavior. The initial fictional sample starts in Qualified to make gate review immediate. A stage's responsible role is a design responsibility, not a grant of permissions.
+Approved standard flow: Lead → Qualified → Proposal → Won, plus Lost from every nonterminal stage. Stage order, probabilities, elapsed-hour durations and required fields are approved design defaults. Scoped permissions and optional/default-off call gates were approved on 26 October 2026; illustrated stage responsibilities remain editable guidance. None of these defaults is inferred historical behavior. The initial fictional sample starts in Qualified to make gate review immediate. A stage's responsible role is a design responsibility, not a grant of permissions.
 
 Execution-order Up/Down buttons intentionally change the proposed ordered draft sequence; they do not merely move shapes. Future free positioning/layout must be stored separately and cannot alter transitions. The sketch pins Lead and terminal stages and allows keyboard reordering of the intermediate pair. It is not a full graph validator/designer and intentionally has no drag interaction.
 
@@ -39,17 +39,17 @@ Execution-order Up/Down buttons intentionally change the proposed ordered draft 
 3. Change the Proposal draft name/probability or reorder the intermediate stages with the Up/Down buttons, then save/publish. The active sample remains on v1 and uses its old stage names/rules. Start a new sample journey to inspect the newly published preview version. This models version pinning only; production immutability/transactions require M3 tests.
 4. Set duplicate stage names or change Won away from 100%; preview publication rejects. Correct the draft and retry. The prototype only validates its small fixed template, not every production graph/reference invariant.
 5. Reset; complete the required data, then click **Simulate another user's update** and attempt movement. Expect a stale-view conflict and no movement. **Refresh journey** and retry; it succeeds. This is a deterministic in-memory illustration, not a concurrent database test or durable idempotency implementation.
-6. Reset; choose Lost without a reason and expect rejection. Supply a reason and expect unsuccessful terminal outcome. The sample does not silently set opportunity status to lost/won; the synchronization policy remains for review.
+6. Reset; choose Lost without a reason and expect rejection. Supply a reason and expect unsuccessful terminal outcome. The sample does not silently set opportunity status to lost/won; this matches the approved separate explicit opportunity-status policy.
 7. Switch to Read-only. Movement is disabled; design editing/publishing is disabled for all non-administrators. Every persona sees the same fictional board; real own/team scope is not simulated.
 8. Preview Loading, Empty and Error; use Retry to return to Ready. Test with keyboard and at desktop/tablet/390px mobile widths. Columns scroll within the board; the page should not overflow horizontally.
 9. Refresh the page or select Reset; confirm sample/draft/history return to the initial state. Nothing should be written to CRM, local storage or an external service.
 
-## Feedback to capture before M3
+## Review status after M3 (26 October 2026)
 
-- Confirm the separate completed-call activity gate and stage responsibilities; stage order, probabilities, durations and required fields have already been approved.
-- Who may publish/archive/clone templates and who may enroll/move scoped opportunities? Confirm the proposed future permission mapping separately from the current four-role matrix.
-- Does a successful/unsuccessful journey update opportunity status, require a separate confirmation, or allow other active customer journeys? How are deferred/paused states and re-entry handled?
-- Review probability override/reporting semantics separately from the approved template percentages and elapsed-hour targets. An explicit 0% override must not fall back to stage probability.
+- Approved: optional completed-call gates disabled by default; existing stage properties remain approved. Stage-role defaults are guidance.
+- Approved: Administrators configure/publish; Managers/Representatives move permitted opportunities; Read-only views permitted records. M3 enforces scoped funnel access; automation is pending M4.
+- Approved: opportunity status changes explicitly; pause/resume and terminal reopening deferred; revisits require published edges and preserved visits. M3 currently offers no revisits; new journey enrollment after completion is distinct.
+- Reporting definitions/fixtures are approved; verify future M5 implementation against them. An explicit 0% override must not fall back to stage probability.
 - Are the keyboard movement, pinned-version explanation, outcome-reason and correction/error states understandable?
 
 Record reviewer/date/findings against D12–D13 in the [M0 decision register](../m0-inception.md). No review/sign-off is inferred from opening the file or passing automated prototype checks.

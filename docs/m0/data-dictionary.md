@@ -2,6 +2,10 @@
 
 Sources: [schema](../../lib/db/schema.ts), [validation](../../lib/validation.ts), [access policy](../../lib/access/policy.ts), [conversion/configuration service](../../lib/domain/workflow.ts) and committed migrations `0000`–`0002`. “Current” describes code, not live database inventory. “Proposed” describes an M3/M4 design contract, not a migrated table.
 
+## Status note — 26 October 2026
+
+This dictionary preserves the inception inventory and proposed table-level design. M3 is now implemented using immutable JSON stage/transition definitions inside funnel versions rather than separate definition tables; see [the M3 data boundaries](../phase-3-funnels.md#data-and-execution-boundaries) and current schema for actual structures. D05–D06/D12–D13 product approvals are recorded in the [decision register](../m0-inception.md#decision-update--26-october-2026). Proposed M4/M5 structures remain unimplemented.
+
 ## Shared meanings and formats
 
 - `id`: database-generated UUID for business entities. User IDs are provider-owned text; the application does not create identities in Neon tables.
