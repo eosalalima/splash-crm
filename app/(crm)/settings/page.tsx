@@ -39,7 +39,7 @@ export default async function SettingsPage() {
       </section>
       <AppearanceToggle />
       {can(info.context.role, "configure") && (
-        <Link className="button secondary" href="/settings/catalog">
+        <Link className="button secondary mt-6" href="/settings/catalog">
           Manage products and lead sources
         </Link>
       )}
