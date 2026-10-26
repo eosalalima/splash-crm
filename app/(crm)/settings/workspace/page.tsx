@@ -5,8 +5,10 @@ import { getDb } from "@/lib/db";
 import { workspaceService } from "@/lib/domain/workspace";
 import { can, presets, roles } from "@/lib/access/policy";
 import { WorkspaceActionForm } from "@/components/workspace-action-form";
+import { invitationEmailConfig } from "@/lib/email/invitations";
 export default async function WorkspaceSettings() {
   const info = await workspaceRequest();
+  const emailReady = Boolean(invitationEmailConfig());
   await workspaceService(getDb()).within(
     info.actor,
     info.organizationId,
@@ -55,7 +57,9 @@ export default async function WorkspaceSettings() {
         <section className="panel panel-heading">
           <h2>Invite a member</h2>
           <p className="muted">
-            Share the generated link securely. Email delivery is not automatic.
+            {emailReady
+              ? "Email the invitation, or create a link to share securely."
+              : "Email delivery is not configured. You can still create a link to share securely."}
           </p>
           <WorkspaceActionForm operation="invite" label="Create invitation">
             <label>
@@ -69,6 +73,16 @@ export default async function WorkspaceSettings() {
                   <option key={role}>{role}</option>
                 ))}
               </select>
+            </label>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                name="sendEmail"
+                value="yes"
+                defaultChecked={emailReady}
+                disabled={!emailReady}
+              />
+              Send invitation by email
             </label>
           </WorkspaceActionForm>
         </section>

@@ -72,7 +72,25 @@ Open **Settings** below **Deals** in the sidebar to toggle dark mode. The initia
 
 See [Phase 1 foundation and rollout](docs/phase-1-foundation.md) before migrating an existing database. Runtime queries and `npm run db:migrate` now use the transactional `pg` adapter (PostgreSQL/TCP), not Neon HTTP/WebSocket auto-detection. Provision a disposable development database, verify a backup, stop old application writes, and explicitly run the migration command before deploying this schema/application pair. No migrations run automatically at startup.
 
-Use **Switch workspace** in the sidebar, and **Settings → Manage workspace** for members, roles, teams, invitations and audit history. Invitations are manually shared secure links and require the recipient's matching verified Neon email. The signed-out recipient signs in and reopens the link. Read-only users can browse only their allowed scope and cannot mutate records.
+Use **Switch workspace** in the sidebar, and **Settings → Manage workspace** for members, roles, teams, invitations and audit history. Invitations require the recipient's matching verified Neon email. The signed-out recipient signs in and reopens the link. Read-only users can browse only their allowed scope and cannot mutate records.
+
+### Invitation email delivery
+
+Workspace invitations support Gmail SMTP over verified TLS (`smtp.gmail.com:465`). Set these server environment variables in `.env.local` (or your hosting environment), then restart the app:
+
+```dotenv
+GMAIL_SMTP_USER=your-account@gmail.com
+GMAIL_SMTP_APP_PASSWORD=your-16-character-google-app-password
+APP_URL=https://your-public-app-domain.com
+```
+
+Enable **2-Step Verification** on the sender's Google account, then create an **App password** at https://myaccount.google.com/apppasswords. Use that app password, never your regular Google password. Google may not offer app passwords for managed accounts or accounts subject to certain security policies; contact your Google Workspace administrator in that case. The sender is the authenticated Gmail address. Google sending limits apply.
+
+Use a public HTTPS app URL that recipients can reach (a local-only localhost address will not work for recipients). SMTP egress on port 465 must be allowed by your hosting provider. Keep credentials server-only; never use `NEXT_PUBLIC_` variables or commit them. Neon Auth verification/password emails are configured separately through Neon.
+
+In **Settings → Workspace**, **Send invitation by email** is selected by default when delivery is configured. Uncheck it for a manually shared link. Without configuration, the app retains manual link creation. SMTP acceptance does not guarantee inbox delivery; check the sender's Gmail Sent folder, bounce messages and the recipient's spam folder. No existing pending invitation is sent automatically. To email one, create another invitation for the same address; the old link is revoked. Invitations expire after seven days.
+
+If delivery fails or times out, the invitation remains valid and the administrator receives its link for manual sharing. An SMTP timeout may happen after acceptance, so the UI says delivery could not be confirmed. Retrying by creating a new invitation replaces the old link. A stable Message-ID identifies each invitation but does not guarantee SMTP deduplication. Email sending happens after the audited invitation transaction commits, never inside a database transaction. There is no automatic retry worker.
 
 The tracked environment template has been sanitized. Rotate previously committed database credentials and the cookie-signing secret; replacing the file does not revoke exposed credentials or erase Git history.
 

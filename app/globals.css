@@ -1563,6 +1563,8 @@ fieldset {
   flex: 1;
   min-width: min(100%, 180px);
 }
+.workspace-action-form .check-label { flex-direction: row; align-items: center; }
+.workspace-action-form .check-label input { width: auto; flex: none; }
 .member-row {
   padding-block: 20px;
   border-bottom: 1px solid var(--line);

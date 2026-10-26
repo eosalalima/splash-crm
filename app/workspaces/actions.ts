@@ -8,6 +8,10 @@ import { organizationCookie, workspaceRequest } from "@/lib/access/server";
 import { getDb } from "@/lib/db";
 import { workspaceService } from "@/lib/domain/workspace";
 import { AccessDenied } from "@/lib/access/policy";
+import {
+  invitationEmailConfig,
+  sendInvitationEmail,
+} from "@/lib/email/invitations";
 export type WorkspaceState = {
   error?: string;
   message?: string;
@@ -48,8 +52,15 @@ export async function workspaceAction(
       destination = "/dashboard";
     } else {
       // Mutation organization comes from the validated server context, not a hidden form field.
-      const { organizationId } = await workspaceRequest();
+      const { organizationId, organization } = await workspaceRequest();
       if (operation === "invite") {
+        const emailRequested = value("sendEmail") === "yes";
+        const emailConfig = invitationEmailConfig();
+        if (emailRequested && !emailConfig)
+          return {
+            error:
+              "Email delivery is not configured. Create a link to share manually, or ask your administrator to configure invitation email.",
+          };
         const token = await service.invite(
           actor,
           organizationId,
@@ -57,6 +68,27 @@ export async function workspaceAction(
           value("role"),
         );
         revalidatePath("/settings/workspace");
+        if (emailRequested && emailConfig) {
+          try {
+            await sendInvitationEmail(emailConfig, {
+              email: value("email").trim().toLowerCase(),
+              token,
+              workspace: organization.name,
+              role: value("role"),
+            });
+            return {
+              message:
+                "Invitation submitted for email delivery. It expires in seven days. If it doesn't arrive, share the link below.",
+              invitationPath: `/invite/${token}`,
+            };
+          } catch {
+            return {
+              error:
+                "Invitation created, but email delivery could not be confirmed. Share the link below, or create a new invitation to retry (this replaces the previous link).",
+              invitationPath: `/invite/${token}`,
+            };
+          }
+        }
         return {
           message:
             "Invitation created. Share this link securely with the intended person. It expires in seven days.",
